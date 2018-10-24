@@ -5,7 +5,7 @@ import java.sql.Statement;
 import java.sql.ResultSet;
 
 public class Main {
-	public static String[] getCred() {
+	public static String[] getCred() { // get user and password data
 		Scanner scanner = new Scanner(System.in);
 		System.out.print("Email: ");
 		String[] usrData = new String[2];
@@ -18,15 +18,15 @@ public class Main {
 		return usrData;
 	}
 	
-	public static void login() {
-		String[] usr = getCred();
+	public static void login() { // get credentials and check if they match database
+		String[] usr = getCred(); // io
 		
 		String sql = String.format("select * from members where email = '%s' and pwd = '%s';", usr[0], usr[1]);
-		try {
+		try { // connect and check credential
 			Connection conn = JDBC_Connection.connect();
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
-			if (!rs.next()) {
+			if (!rs.next()) { // if no matches are returned
 				System.out.println("Incorrect Login Credentials, terminating program");
 				return;
 			}
@@ -38,10 +38,10 @@ public class Main {
 		return;
 	}
 	
-	public static void register() {
+	public static void register() { // check input and add new member if not currently in db
 		String[] usr = getCred();
 		String sql = String.format("select * from members where email = '%s';", usr[0]);
-		try {
+		try { // connect
 			Connection conn = JDBC_Connection.connect();
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
@@ -62,10 +62,12 @@ public class Main {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		// redirect to login screen
 		login();
 	}
 
 	public static void main(String[] args) {
+		// start program
 		System.out.println("'Login' or 'Register' to continue");
 		Scanner scanner = new Scanner(System.in);
 		String input = scanner.next();
