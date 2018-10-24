@@ -5,34 +5,76 @@ import java.sql.Statement;
 import java.sql.ResultSet;
 
 public class Main {
-	public static String[] login() {
+	public static String[] getCred() {
 		Scanner scanner = new Scanner(System.in);
 		System.out.print("Email: ");
 		String[] usrData = new String[2];
-		usrData[0] = scanner.next();
+		usrData[0] = helpers.safeString(scanner.next());
 		System.out.println();
 		System.out.print("Password: ");
-		usrData[1] = scanner.next();
+		usrData[1] = helpers.safeString(scanner.next());
 		System.out.println();
 		scanner.close();
 		return usrData;
 	}
-
-	public static void main(String[] args) {
-		String[] usr;
-		usr = login();
+	
+	public static void login() {
+		String[] usr = getCred();
+		
 		String sql = String.format("select * from members where email = '%s' and pwd = '%s';", usr[0], usr[1]);
 		try {
 			Connection conn = JDBC_Connection.connect();
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
 			if (!rs.next()) {
-				System.out.println("Incorrect Login Credentials");
+				System.out.println("Incorrect Login Credentials, terminating program");
 				return;
+			}
+			System.out.println("Login Successful");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		// TODO: Start main menu
+		return;
+	}
+	
+	public static void register() {
+		String[] usr = getCred();
+		String sql = String.format("select * from members where email = '%s';", usr[0]);
+		try {
+			Connection conn = JDBC_Connection.connect();
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			if (rs.next()) {
+				// user exists already
+				System.out.println("User already exists, terminating program");
+				return;
+			} else {
+				// create login
+				sql = String.format("insert into members (email, pwd) values ('%s', '%s')", usr[0], usr[1]);
+				if (stmt.execute(sql)) {
+					System.out.println("Registration Successful");
+				} else {
+					System.out.println("Registration Failed, terminating program");
+					return;
+				}
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+		login();
+	}
+
+	public static void main(String[] args) {
+		System.out.println("'Login' or 'Register' to continue");
+		Scanner scanner = new Scanner(System.in);
+		String input = scanner.next();
+		if (input.equals("Register")) {
+			register();
+		} else if  (input.equals("Login")) {
+			login();
+		} else {
+			System.out.println("Invalid input, terminating program");
+		}	
 	}
 }

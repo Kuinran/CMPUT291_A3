@@ -1,6 +1,6 @@
 
 public class helpers {
-	public void safeString(String str) { // check string for sql
-		
+	public static String safeString(String str) { // sanitize string
+		return str;
 	}
 }
