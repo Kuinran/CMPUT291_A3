@@ -1,11 +1,36 @@
-all: p1
+JFLAGS = -g
+JC = javac
+.SUFFIXES: .java .class
+.java.class:
+	$(JC)	$(JFLAGS)	$*.java
 	
-p1: Main.java Helpers.java JDBC_Connection.java Menu_Book.java Menu_Main.java Menu_ManageRq.java Menu_PostRq.java Menu_RideOffer.java Menu_Search.java
-	javac Main.java Helpers.java JDBC_Connection.java Menu_Book.java Menu_Main.java Menu_ManageRq.java Menu_PostRq.java Menu_RideOffer.java Menu_Search.java
+CLASSES = \
+	Helpers.java \
+	JDBC_Connection.java \ 
+	Menu_Book.java \ 
+	Menu_Main.java \
+	Menu_ManageRq.java \
+	Menu_PostRq.java \
+	Menu_RideOffer.java \
+	Menu_Search.java \ 
+	Main.java
 	
-clean :
-        -rm $(objects)
-      
-run: Main.java Helpers.java JDBC_Connection.java Menu_Book.java Menu_Main.java Menu_ManageRq.java Menu_PostRq.java Menu_RideOffer.java Menu_Search.java
-	p1
-	java Main.class
+default: classes
+
+classes: $(CLASSES:.java=.class)
+
+clean:
+	$(RM) *.class
+
+
+#all: p1
+#	
+#p1: Main.java Helpers.java JDBC_Connection.java Menu_Book.java Menu_Main.java Menu_ManageRq.java Menu_PostRq.java Menu_RideOffer.java Menu_Search.java
+#	javac Main.java Helpers.java JDBC_Connection.java Menu_Book.java Menu_Main.java Menu_ManageRq.java Menu_PostRq.java Menu_RideOffer.java Menu_Search.java
+#	
+#clean :
+#        -rm $(objects)
+#      
+#run: Main.java Helpers.java JDBC_Connection.java Menu_Book.java Menu_Main.java Menu_ManageRq.java Menu_PostRq.java Menu_RideOffer.java Menu_Search.java
+#	p1
+#java Main.class
