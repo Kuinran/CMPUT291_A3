@@ -54,13 +54,13 @@ public class Main {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
 			if (rs.next()) {
-				// user exists already
+				// user exists already, query returned nothing
 				System.out.println("User already exists, terminating program");
 				return;
 			} else {
 				// create login
 				sql = String.format("insert into members (email, pwd) values ('%s', '%s')", usr[0], usr[1]);
-				if (!stmt.execute(sql)) {
+				if (!stmt.execute(sql)) { // successful insertion
 					System.out.println("Registration Successful");
 				} else {
 					System.out.println("Registration Failed, terminating program");
