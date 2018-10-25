@@ -39,10 +39,10 @@ public class Main {
 				return;
 			}
 			System.out.println("Login Successful");
+			new Menu_Main(usr[0], scanner, conn);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		new Menu_Main(usr[0]);
 		return;
 	}
 	
@@ -66,12 +66,13 @@ public class Main {
 					System.out.println("Registration Failed, terminating program");
 					return;
 				}
+				new Menu_Main(usr[0], scanner, conn);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
-		new Menu_Main(usr[0]);
+		
 	}
 
 	public static void main(String[] args) {
