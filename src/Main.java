@@ -80,6 +80,7 @@ public class Main {
 		System.out.println("'Login' or 'Register' to continue");
 		Scanner scanner = new Scanner(System.in);
 		String input = scanner.next().toLowerCase();
+		scanner.close();
 		if (input.equals("register")) {
 			register();
 		} else if  (input.equals("login")) {
