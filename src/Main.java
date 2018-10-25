@@ -6,10 +6,9 @@ import java.sql.ResultSet;
 import java.io.Console;
 
 public class Main {
-	public static String[] getCred() { // get user and password data, email is case insensitive
+	public static String[] getCred(Scanner scanner) { // get user and password data, email is case insensitive
 		String password = "";
 		Console cnsl = null;
-		Scanner scanner = new Scanner(System.in);
 		System.out.print("Email: ");
 		String[] usrData = new String[2];
 		usrData[0] = Helpers.safeString(scanner.next().toLowerCase());
@@ -27,8 +26,8 @@ public class Main {
 		return usrData;
 	}
 	
-	public static void login() { // get credentials and check if they match database
-		String[] usr = getCred(); // io
+	public static void login(Scanner scanner) { // get credentials and check if they match database
+		String[] usr = getCred(scanner); // io
 		
 		String sql = String.format("select * from members where email = '%s' and pwd = '%s';", usr[0], usr[1]);
 		try { // connect and check credential
@@ -47,8 +46,8 @@ public class Main {
 		return;
 	}
 	
-	public static void register() { // check input and add new member if not currently in db
-		String[] usr = getCred();
+	public static void register(Scanner scanner) { // check input and add new member if not currently in db
+		String[] usr = getCred(scanner);
 		String sql = String.format("select * from members where email = '%s';", usr[0]);
 		try { // connect
 			Connection conn = JDBC_Connection.connect();
@@ -80,13 +79,13 @@ public class Main {
 		System.out.println("'Login' or 'Register' to continue");
 		Scanner scanner = new Scanner(System.in);
 		String input = scanner.next().toLowerCase();
-		scanner.close();
 		if (input.equals("register")) {
-			register();
+			register(scanner);
 		} else if  (input.equals("login")) {
-			login();
+			login(scanner);
 		} else {
 			System.out.println("Invalid input, terminating program");
 		}	
+		scanner.close();
 	}
 }
