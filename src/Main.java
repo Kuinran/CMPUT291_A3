@@ -61,7 +61,7 @@ public class Main {
 			} else {
 				// create login
 				sql = String.format("insert into members (email, pwd) values ('%s', '%s')", usr[0], usr[1]);
-				if (stmt.execute(sql)) {
+				if (!stmt.execute(sql)) {
 					System.out.println("Registration Successful");
 				} else {
 					System.out.println("Registration Failed, terminating program");
@@ -72,7 +72,7 @@ public class Main {
 			e.printStackTrace();
 		}
 		
-		login();
+		new Menu_Main(usr[0]);
 	}
 
 	public static void main(String[] args) {
