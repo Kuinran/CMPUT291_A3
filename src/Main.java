@@ -3,16 +3,25 @@ import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.ResultSet;
+import java.io.Console;
 
 public class Main {
-	public static String[] getCred() { // get user and password data
+	public static String[] getCred() { // get user and password data, email is case insensitive
+		String password = "";
+		Console cnsl = null;
 		Scanner scanner = new Scanner(System.in);
 		System.out.print("Email: ");
 		String[] usrData = new String[2];
-		usrData[0] = helpers.safeString(scanner.next());
+		usrData[0] = Helpers.safeString(scanner.next().toLowerCase());
 		System.out.println();
 		System.out.print("Password: ");
-		usrData[1] = helpers.safeString(scanner.next());
+		try { // if using cmd line can use console to hide password TODO: test this in console
+			cnsl = System.console();
+			password = cnsl.readPassword().toString();
+		} catch (Exception e) {
+			password = scanner.next().toLowerCase();
+		}
+		usrData[1] = Helpers.safeString(password);
 		System.out.println();
 		scanner.close();
 		return usrData;
@@ -34,7 +43,7 @@ public class Main {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		// TODO: Start main menu
+		new Menu_Main(usr[0]);
 		return;
 	}
 	
@@ -62,7 +71,7 @@ public class Main {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		// redirect to login screen
+		
 		login();
 	}
 
@@ -70,10 +79,10 @@ public class Main {
 		// start program
 		System.out.println("'Login' or 'Register' to continue");
 		Scanner scanner = new Scanner(System.in);
-		String input = scanner.next();
-		if (input.equals("Register")) {
+		String input = scanner.next().toLowerCase();
+		if (input.equals("register")) {
 			register();
-		} else if  (input.equals("Login")) {
+		} else if  (input.equals("login")) {
 			login();
 		} else {
 			System.out.println("Invalid input, terminating program");

@@ -1,4 +1,4 @@
 
-public class menu_manageRq {
+public class Menu_ManageRq {
 
 }

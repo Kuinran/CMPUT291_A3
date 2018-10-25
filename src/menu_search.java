@@ -1,4 +1,4 @@
 
-public class menu_search {
+public class Menu_Search {
 
 }

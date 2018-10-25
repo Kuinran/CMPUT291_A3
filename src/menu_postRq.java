@@ -1,4 +1,4 @@
 
-public class menu_postRq {
+public class Menu_PostRq {
 
 }
