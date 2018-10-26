@@ -46,7 +46,7 @@ public class JDBC_Connection { // class for connecting and reusable functions in
 				String sender = query.getString(3);
 				String content = query.getString(4);
 				int rno = query.getInt(5);
-				System.out.println(String.format("From: %s\n[%s] Ride: %d \n%s\n-------", sender, time, rno, content));
+				System.out.println(String.format("From: %s\n[%s] Ride: %d \n%s\n-------\n", sender, time, rno, content));
 			}
 			//TODO: Uncomment when doing demo
 			//sql = "update inbox set seen = 'y' where seen = 'n';";
