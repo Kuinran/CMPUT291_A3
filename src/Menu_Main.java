@@ -11,5 +11,10 @@ public class Menu_Main {
 	Menu_Main (String usr, Scanner scanner, Connection conn) {
 		this.usr = usr;
 		JDBC_Connection.getMsg(usr, conn);
+		processOptions(scanner);
+	}
+	
+	private void processOptions(Scanner scanner) {
+		
 	}
 }

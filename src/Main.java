@@ -22,13 +22,12 @@ public class Main {
 		}
 		usrData[1] = Helpers.safeString(password);
 		System.out.println();
-		scanner.close();
 		return usrData;
 	}
 	
 	public static void login(Scanner scanner) { // get credentials and check if they match database
 		String[] usr = getCred(scanner); // io
-		
+	
 		String sql = String.format("select * from members where email = '%s' and pwd = '%s';", usr[0], usr[1]);
 		try { // connect and check credential
 			Connection conn = JDBC_Connection.connect();
@@ -48,6 +47,11 @@ public class Main {
 	
 	public static void register(Scanner scanner) { // check input and add new member if not currently in db
 		String[] usr = getCred(scanner);
+		System.out.print("Name: ");
+		String name = Helpers.safeString(scanner.next());
+		System.out.println();
+		System.out.print("Phone # (###-###-####): ");
+		String phone = (Helpers.safeString(scanner.next()));
 		String sql = String.format("select * from members where email = '%s';", usr[0]);
 		try { // connect
 			Connection conn = JDBC_Connection.connect();
@@ -59,7 +63,8 @@ public class Main {
 				return;
 			} else {
 				// create login
-				sql = String.format("insert into members (email, pwd) values ('%s', '%s')", usr[0], usr[1]);
+				sql = String.format("insert into members (email, name, phone, pwd) "
+						+ "values ('%s', '%s', '%s', '%s')", usr[0], name, phone, usr[1]);
 				if (!stmt.execute(sql)) { // successful insertion
 					System.out.println("Registration Successful");
 				} else {
