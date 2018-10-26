@@ -13,6 +13,7 @@ CLASSES = \
 	Menu_PostRq.java \
 	Menu_RideOffer.java \
 	Menu_Search.java \ 
+	Menu_Login.java \
 	Main.java
 	
 default: classes
