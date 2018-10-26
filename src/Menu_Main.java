@@ -24,7 +24,7 @@ public class Menu_Main {
 			case "5": new Menu_ManageRq();
 			case "6": new Menu_Login(scanner);
 			case "7": System.out.println("Stopping"); return;
-			default : System.out.println("Invalid option, please try again"); return;
+			default : System.out.println("Invalid option, please try again");
 			}
 		}
 	}
