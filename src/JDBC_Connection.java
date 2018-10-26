@@ -20,7 +20,8 @@ public class JDBC_Connection { // class for connecting and reusable functions in
 	
 	public static void sendMsg(String sender, String reciever, String msg, int rno, Connection conn) { // saves a message
 		System.out.println("Sending Message");
-		String sql = String.format("insert into inbox (email, msgTimestamp, sender, content, rno, seen) values ('%s', date('now'), '%s', '%s', '%d', 'n');", reciever, sender, msg, rno);
+		String sql = String.format("insert into inbox (email, msgTimestamp, sender, content, rno, seen) "
+				+ "values ('%s', datetime('now'), '%s', '%s', '%d', 'n');", reciever, sender, msg, rno);
 		try {
 			Statement stmt = conn.createStatement();
 			if (!stmt.execute(sql)) {
@@ -47,6 +48,9 @@ public class JDBC_Connection { // class for connecting and reusable functions in
 				int rno = query.getInt(5);
 				System.out.println(String.format("From: %s\n[%s] Ride: %d \n%s\n-------", sender, time, rno, content));
 			}
+			//TODO: Uncomment when doing demo
+			//sql = "update inbox set seen = 'y' where seen = 'n';";
+			//stmt.execute(sql);
 		} catch (Exception e) {
 			System.out.println("Connection to server failed");
 		}
