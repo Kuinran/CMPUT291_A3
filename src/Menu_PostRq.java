@@ -1,41 +1,71 @@
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.ResultSet;
 //probably need to import more shit >.<
-public class Menu_PostRq {
+
+
+public class Menu_PostRq{
 	private String usr;
-		
-		Menu_PostRq (String usr, Scanner scanner, Connection conn) {
+		Menu_PostRq(String usr, Scanner scanner, Connection conn) {
 			this.usr = usr;
-			JDBC_Connection.getMsg(usr, conn);
+			post_rq(scanner, usr, conn);
 		}
 		
-		private void post_rq (Scanner scanner) {
-			System.out.println("date\n");
+		private void post_rq (Scanner scanner, String usr, Connection conn){
+			System.out.println("date (YYYY-MM-DD)\n");
 			String date = Helpers.safeString(scanner.next());
 			System.out.println("pickup location\n");
 			String pickup = Helpers.safeString(scanner.next());
 			System.out.println("dropoff location\n");
 			String dropoff = Helpers.safeString(scanner.next());
 			System.out.println("price\n");
-			int price = Helpers.safeString(scanner.nextInt());
+			String p = Helpers.safeString(scanner.next());
+			int price = Integer.parseInt(p);
 			
-			Insert(date, pickup, dropoff, price);
+			Insert(usr, date, pickup, dropoff, price);
+			new Menu_Main(usr, scanner, conn);
 		}
 		
-		private void Insert (String date, String pickup, String dropoff, int price){
-				//TODO get rid, email
+		private void Insert (String email, String date, String pickup, String dropoff, int price)	{
+				//TODO check date format, and change pickup and dropoff to location codes
 				String sql = "INSERT INTO requests(rid, email, rdate, pickup, dropoff, amount) VALUES(?,?,?,?,?,?)";
+				int rid = GenRID();
 				try (Connection conn = JDBC_Connection.connect();
 						PreparedStatement pstmt = conn.prepareStatement(sql)){
+					pstmt.setInt(1, rid);
+					pstmt.setString(2, email);
 					pstmt.setString(3, date);
 					pstmt.setString(4, pickup);
 					pstmt.setString(5, dropoff);
 					pstmt.setInt(6, price);
 					pstmt.executeUpdate();
-				}catch (SQLException e) {
+				}catch (SQLException e){
 					System.out.println(e.getMessage());
+				}	
+		}
+		private int GenRID(){
+			List<Integer> rid = new ArrayList<>();
+			String sql = "SELECT rid FROM requests";
+			
+			try (Connection conn = JDBC_Connection.connect();
+					Statement stmt  = conn.createStatement();
+					ResultSet rs    = stmt.executeQuery(sql)){
+				if(rs.next()) {
+					while(rs.next()) {
+						rid.add(rs.getInt("rid"));
+					}
+				}else {
+					return 0;
 				}
+			}catch (SQLException e) {
+				System.out.println(e.getMessage());
+			}		
+			int e = rid.get(rid.size()-1);
+			return e+1;
 		}
 }
