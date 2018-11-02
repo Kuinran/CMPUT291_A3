@@ -25,9 +25,7 @@ public class Menu_Login {
 		System.out.print("Email: ");
 		String[] usrData = new String[2];
 		
-		
 		usrData[0] = scanner.next().toLowerCase();
-		
 		System.out.println();
 		System.out.print("Password: ");
 		try { // if using cmd line can use console to hide password TODO: test this in console
@@ -36,7 +34,6 @@ public class Menu_Login {
 		} catch (Exception e) {
 			password = scanner.next().toLowerCase();
 		}
-		
 		usrData[1] = password;
 		System.out.println();
 		return usrData;
@@ -44,7 +41,6 @@ public class Menu_Login {
 	
 	private static void login(Scanner scanner) { // get credentials and check if they match database
 		String[] usr = getCred(scanner); // io
-	
 		
 		String sql = "select * from members where email = ? and pwd = ?";
 		
@@ -55,8 +51,6 @@ public class Menu_Login {
 				{
 			pstmt.setString(1, usr[0]);
 			pstmt.setString(2, usr[1]);
-			
-			
 			ResultSet rs = pstmt.executeQuery();
 			if (!rs.next()) { // if no matches are returned
 				System.out.println("Incorrect Login Credentials, terminating program");
