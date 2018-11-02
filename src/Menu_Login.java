@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
+import java.sql.PreparedStatement;
 
 public class Menu_Login {
 	Menu_Login(Scanner scanner) {
@@ -23,7 +24,8 @@ public class Menu_Login {
 		Console cnsl = null;
 		System.out.print("Email: ");
 		String[] usrData = new String[2];
-		usrData[0] = Helpers.safeString(scanner.next().toLowerCase());
+		//usrData[0] = Helpers.safeString(scanner.next().toLowerCase());
+		usrData[0] = scanner.next().toLowerCase();
 		System.out.println();
 		System.out.print("Password: ");
 		try { // if using cmd line can use console to hide password TODO: test this in console
@@ -32,7 +34,8 @@ public class Menu_Login {
 		} catch (Exception e) {
 			password = scanner.next().toLowerCase();
 		}
-		usrData[1] = Helpers.safeString(password);
+		//usrData[1] = Helpers.safeString(password);
+		usrData[1] = password;
 		System.out.println();
 		return usrData;
 	}
@@ -40,11 +43,14 @@ public class Menu_Login {
 	private static void login(Scanner scanner) { // get credentials and check if they match database
 		String[] usr = getCred(scanner); // io
 	
-		String sql = String.format("select * from members where email = '%s' and pwd = '%s';", usr[0], usr[1]);
-		try { // connect and check credential
-			Connection conn = JDBC_Connection.connect();
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
+		//String sql = String.format("select * from members where email = '%s' and pwd = '%s';", usr[0], usr[1]);		
+		String sql = "select * from members where email = ? and pwd = ?";
+		try  // connect and check credential
+			(Connection conn = JDBC_Connection.connect();
+			PreparedStatement pstmt = conn.prepareStatement(sql)){
+			pstmt.setString(1, usr[0]);
+			pstmt.setString(2, usr[1]);
+			ResultSet rs = pstmt.executeQuery(sql);
 			if (!rs.next()) { // if no matches are returned
 				System.out.println("Incorrect Login Credentials, terminating program");
 				return;
@@ -74,9 +80,16 @@ public class Menu_Login {
 				System.out.println("User already exists, terminating program");
 				return;
 			} else {
+				sql = "INSERT INTO members(email, name, phone, pwd) VALUES (?,?,?,?)";
+				try (PreparedStatement pstmt = conn.prepareStatement(sql)){
+							pstmt.setString(1, usr[0]);
+							pstmt.setString(2, name);
+							pstmt.setString(3, phone);
+							pstmt.setString(4, usr[1]);
+						}
 				// create login
-				sql = String.format("insert into members (email, name, phone, pwd) "
-						+ "values ('%s', '%s', '%s', '%s')", usr[0], name, phone, usr[1]);
+				//sql = String.format("insert into members (email, name, phone, pwd) "
+				//		+ "values ('%s', '%s', '%s', '%s')", usr[0], name, phone, usr[1]);
 				if (!stmt.execute(sql)) { // successful insertion
 					System.out.println("Registration Successful");
 				} else {
