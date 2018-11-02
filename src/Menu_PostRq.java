@@ -21,9 +21,9 @@ public class Menu_PostRq{
 		private void post_rq (Scanner scanner, String usr, Connection conn){
 			System.out.println("date (YYYY-MM-DD)\n");
 			String date = Helpers.safeString(scanner.next());
-			System.out.println("pickup location\n");
+			System.out.println("pickup location code\n");
 			String pickup = Helpers.safeString(scanner.next());
-			System.out.println("dropoff location\n");
+			System.out.println("dropoff location code\n");
 			String dropoff = Helpers.safeString(scanner.next());
 			System.out.println("price\n");
 			String p = Helpers.safeString(scanner.next());
