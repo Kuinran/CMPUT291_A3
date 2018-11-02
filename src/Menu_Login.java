@@ -25,7 +25,7 @@ public class Menu_Login {
 		System.out.print("Email: ");
 		String[] usrData = new String[2];
 		
-		//usrData[0] = Helpers.safeString(scanner.next().toLowerCase());
+		
 		usrData[0] = scanner.next().toLowerCase();
 		
 		System.out.println();
@@ -36,7 +36,7 @@ public class Menu_Login {
 		} catch (Exception e) {
 			password = scanner.next().toLowerCase();
 		}
-		//usrData[1] = Helpers.safeString(password);
+		
 		usrData[1] = password;
 		System.out.println();
 		return usrData;
@@ -45,12 +45,12 @@ public class Menu_Login {
 	private static void login(Scanner scanner) { // get credentials and check if they match database
 		String[] usr = getCred(scanner); // io
 	
-		//String sql = String.format("select * from members where email = '%s' and pwd = '%s';", usr[0], usr[1]);
+		
 		String sql = "select * from members where email = ? and pwd = ?";
 		
-		try (//{ // connect and check credential
+		try ( // connect and check credential
 			Connection conn = JDBC_Connection.connect();
-			//Statement stmt = conn.createStatement();
+			
 				PreparedStatement pstmt = conn.prepareStatement(sql))
 				{
 			pstmt.setString(1, usr[0]);
@@ -77,14 +77,14 @@ public class Menu_Login {
 		System.out.println();
 		System.out.print("Phone # (###-###-####): ");
 		String phone = scanner.next();
-		//String sql = String.format("select * from members where email = '%s';", usr[0]);
-		String sql = "select * from members where email = ?";
 		
-		try (//{ // connect
+		String sql = "select * from members where email = ?";
+		String sqlupdate = "insert into members(email, name, phone, pwd) Values(?,?,?,?)";
+		try (
 			Connection conn = JDBC_Connection.connect();
-			//Statement stmt = conn.createStatement();
-				PreparedStatement pstmt = conn.prepareStatement(sql))
-				
+			
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				PreparedStatement stmt = conn.prepareStatement(sqlupdate))
 				{
 			pstmt.setString(1, usr[0]);
 			ResultSet rs = pstmt.executeQuery();
@@ -93,13 +93,7 @@ public class Menu_Login {
 				System.out.println("User already exists, terminating program");
 				return;
 			} else {
-				// create login
-				//sql = String.format("insert into members (email, name, phone, pwd) "
-						//+ "values ('%s', '%s', '%s', '%s')", usr[0], name, phone, usr[1]);
-				sql = "insert into members(email, name, phone, pwd) Values(?,?,?,?)";
-				//fix connections
-				Connection connn = JDBC_Connection.connect();
-				PreparedStatement stmt = connn.prepareStatement(sql);
+			
 				stmt.setString(1, usr[0]);
 				stmt.setString(2, name);
 				stmt.setString(3, phone);
