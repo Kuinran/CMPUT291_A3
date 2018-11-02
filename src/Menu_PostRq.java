@@ -5,6 +5,8 @@ import java.util.Scanner;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.sql.ResultSet;
 //probably need to import more shit >.<
 
@@ -32,21 +34,23 @@ public class Menu_PostRq{
 		}
 		
 		private void Insert (String email, String date, String pickup, String dropoff, int price)	{
-				//TODO check date format, and change pickup and dropoff to location codes
-				String sql = "INSERT INTO requests(rid, email, rdate, pickup, dropoff, amount) VALUES(?,?,?,?,?,?)";
-				int rid = GenRID();
-				try (Connection conn = JDBC_Connection.connect();
-						PreparedStatement pstmt = conn.prepareStatement(sql)){
-					pstmt.setInt(1, rid);
-					pstmt.setString(2, email);
-					pstmt.setString(3, date);
-					pstmt.setString(4, pickup);
-					pstmt.setString(5, dropoff);
-					pstmt.setInt(6, price);
-					pstmt.executeUpdate();
-				}catch (SQLException e){
-					System.out.println(e.getMessage());
-				}	
+			//TODO check date format, and change pickup and dropoff to location codes			
+			
+			String sql = "INSERT INTO requests(rid, email, rdate, pickup, dropoff, amount) VALUES(?,?,?,?,?,?)";
+			int rid = GenRID();
+			try (Connection conn = JDBC_Connection.connect();
+					PreparedStatement pstmt = conn.prepareStatement(sql)){
+				pstmt.setInt(1, rid);
+				pstmt.setString(2, email);
+				DateFormat rdate = new SimpleDateFormat("yyyy-MM-dd");
+				pstmt.setString(3, rdate.format(date));
+				pstmt.setString(4, pickup);
+				pstmt.setString(5, dropoff);
+				pstmt.setInt(6, price);
+				pstmt.executeUpdate();
+			}catch (SQLException e){
+				System.out.println(e.getMessage());
+			}	
 		}
 		private int GenRID(){
 			List<Integer> rid = new ArrayList<>();
