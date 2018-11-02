@@ -4,6 +4,8 @@ import java.util.Scanner;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Menu_ManageRq {
 	private String usr;
@@ -26,8 +28,48 @@ public class Menu_ManageRq {
 	}
 	
 	private void search(Scanner scanner, Connection conn) {
+		System.out.println("Enter a city or location code");
+		String location = scanner.next().toLowerCase();
+		int i = parseUlocation(location);
 		
+	}
+	
+	private int parseUlocation(String location) {//check if input is lcode or city
+		List<String> loccode = new ArrayList<>();
+		List<String> loccity = new ArrayList<>();
+		String code = "select lcode from locations";
+		String city = "select city from locations";
 		
+		try (Connection conn = JDBC_Connection.connect();
+				Statement stmt = conn.createStatement();
+				ResultSet rs1 = stmt.executeQuery(code);
+				ResultSet rs2 = stmt.executeQuery(city)){
+			
+			if (rs1.next() || rs2.next()) {
+				while(rs1.next()) {
+					loccode.add(rs1.getString("lcode").toLowerCase());
+				}
+				while (rs2.next()) {
+					loccity.add(rs2.getString("city").toLowerCase());
+				}
+			} else {
+				return 0;
+			}
+			
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());	
+		}
+		for (int i = 0; i < loccode.size();i++) {
+			if (location == loccode.get(i)) {
+				return 1;	//1 if lcode
+			}
+		}
+		for (int i = 0; i< loccity.size(); i++) {
+			if (location == loccity.get(i)) {
+				return 2;	//2 if city
+			}
+		}
+		return 0;
 	}
 	
 	private void delete(String usr, Scanner scanner, Connection conn) {
