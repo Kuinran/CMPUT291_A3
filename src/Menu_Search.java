@@ -10,14 +10,14 @@ public class Menu_Search {
 	private Scanner scanner;
 	private String email;
 	private Connection conn;
-	private enum State {MAIN, PRINT, SUB, MSG, QUIT};
+	private enum State {MAIN, SEARCH, PRINT, SUB, MSG, QUIT};
 	private State state;
 	private ResultSet rs;
 	private String[] input;
 	
 	Menu_Search(String email, Scanner scanner, Connection conn) {
 		this.email = email;
-		this.scanner = scanner;
+		this.scanner = scanner.reset();
 		this.conn = conn;
 		this.state = State.MAIN;
 		this.run();
@@ -28,19 +28,21 @@ public class Menu_Search {
 			System.out.println("State: " + state);
 			if (this.state == State.MAIN) {
 				keywordPrompt();
+			} else if (this.state == State.SEARCH) {
 				try {
 					searchDb();
 					if (rs.next()) {
 						// result set exists change state
-						searchDb();
 						state = State.PRINT;
 					} else {
 						// result set returned nothing, try a new search
 						System.out.println("Sorry, no matches have been found. Please try a new search");
+						state = State.MAIN;
 					}
 				} catch (SQLException e) {
 					System.out.println("An error has occured, please try again");
 					e.printStackTrace();
+					state = State.MAIN;
 					continue;
 				}
 			} else if (this.state == State.PRINT) {
@@ -77,6 +79,7 @@ public class Menu_Search {
 			if (keywords.length > 3 && keywords.length < 0) {
 				System.out.println("Invalid number of keywords");
 			} else {
+				state = State.SEARCH;
 				break;
 			}
 		}
@@ -89,22 +92,25 @@ public class Menu_Search {
 		String subQueryString = "select lcode from locations where lcode = ? or city like ? or "
 				+ "prov like ? or address like ?";
 		if (input.length == 2) {
-			subQueryString += "or lcode = ? or city like ? or prov like ? or address like ?";
+			subQueryString += " or lcode = ? or city like ? or prov like ? or address like ?";
 		} 
 		if (input.length == 3) {
-			subQueryString += "or lcode = ? or city like ? or prov like ? or address like ?";
+			subQueryString += " or lcode = ? or city like ? or prov like ? or address like ?";
 		}
 		// query returning rno where lcode matches location
 		String subQueryStringEnroute = "select rno from enroute where lcode = (" + subQueryString + ")";
 		String searchString = "select distinct * from rides r left join cars c on r.cno = c.cno"
-				+ "where src = (" + subQueryString + ") or dest = (" + subQueryString + ") or r.rno = ("
+				+ " where src = (" + subQueryString + ") or dst = (" + subQueryString + ") or r.rno = ("
 				+ subQueryStringEnroute + ")";
+		System.out.println(searchString);
 		PreparedStatement search = conn.prepareStatement(searchString);
 		for (int i = 0; i < input.length; i++) {
-			search.setString(1, input[i]);
-			search.setString(2, "%" + input[i] + "%");
-			search.setString(3, "%" + input[i] + "%");
-			search.setString(4, "%" + input[i] + "%");
+			for (int j = 1; j < (input.length * 12) + 1; j++) {
+				search.setString(j, input[i]);
+				search.setString(2, "%" + input[i] + "%");
+				search.setString(3, "%" + input[i] + "%");
+				search.setString(4, "%" + input[i] + "%");
+			}
 		}
 		rs = search.executeQuery();
 	}
@@ -117,7 +123,7 @@ public class Menu_Search {
 			String str = "%d-3s|%d-5s|%s-15s|%d-5s|%s-19s|%s-5s|%s-5s|%s-16s|%d-3s|%s-13s|%s-13s"
 					+ "|%d-4s|%s-16s";
 			str = String.format(str, rs.getInt("rno"), rs.getInt("price"), rs.getDate("rdate").toString(),
-					rs.getInt("r.seats"), rs.getString("lugDesc"), rs.getString("src"), rs.getString("dest"),
+					rs.getInt("r.seats"), rs.getString("lugDesc"), rs.getString("src"), rs.getString("dst"),
 					rs.getString("driver"), rs.getInt("cno"), rs.getString("make"), rs.getString("model"),
 					rs.getInt("year"), rs.getString("owner"));
 			System.out.println(str);
@@ -147,7 +153,7 @@ public class Menu_Search {
 		System.out.println("Enter the Rno of the ride or type <Cancel> to return");
 		rno = scanner.nextInt();
 		System.out.println("Enter how many seats you would like to book or type <Cancel> to return");
-		rno = scanner.nextInt();
+		seats = scanner.nextInt();
 		String msg = String.format("Hi! I would like to book %d seats on %d.", rno, seats);
 		// need to query to get reciever of msg then insert new message
 		PreparedStatement findReciever = conn.prepareStatement("select distinct driver from rides"
