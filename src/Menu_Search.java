@@ -2,7 +2,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Menu_Search {
@@ -86,7 +85,7 @@ public class Menu_Search {
 		this.input = keywords;
 	}
 	
-	void searchDb() throws SQLException { // TODO, fix this
+	void searchDb() throws SQLException {
 		System.out.println("Searching...");
 		// query returning lcode where location matches keywords
 		String subQueryString = "select lcode from locations where lcode = ? or city like ? or "
@@ -102,7 +101,7 @@ public class Menu_Search {
 		String searchString = "select distinct * from rides r left join cars c on r.cno = c.cno"
 				+ " where src = (" + subQueryString + ") or dst = (" + subQueryString + ") or r.rno = ("
 				+ subQueryStringEnroute + ")";
-		System.out.println(searchString);
+		// System.out.println(searchString);
 		PreparedStatement search = conn.prepareStatement(searchString);
 		for (int i = 0; i < input.length; i++) {
 			for (int j = 1; j < (input.length * 12) + 1; j++) {
