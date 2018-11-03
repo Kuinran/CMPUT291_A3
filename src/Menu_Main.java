@@ -17,7 +17,7 @@ public class Menu_Main {
 			System.out.println("4|Post a ride request\n5|Manage existing requests\n6|Logout");
 			System.out.println("7|Quit");
 			switch (scanner.next()) {
-			case "1": new Menu_RideOffer();
+			case "1": new Menu_RideOffer(usr, scanner, conn);
 			case "2": new Menu_Search(usr, scanner, conn);
 			case "3": new Menu_Book();
 			case "4": new Menu_PostRq(usr, scanner, conn);

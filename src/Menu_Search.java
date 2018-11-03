@@ -97,7 +97,7 @@ public class Menu_Search {
 		// query returning rno where lcode matches location
 		String subQueryStringEnroute = "select rno from enroute where lcode = (" + subQueryString + ")";
 		String searchString = "select distinct * from rides r left join cars c on r.cno = c.cno"
-				+ "where src = (" + subQueryString + ") or dest = (" + subQueryString + ") or r.rno = ("
+				+ "where src = (" + subQueryString + ") or dst = (" + subQueryString + ") or r.rno = ("
 				+ subQueryStringEnroute + ")";
 		PreparedStatement search = conn.prepareStatement(searchString);
 		for (int i = 0; i < input.length; i++) {
@@ -117,7 +117,7 @@ public class Menu_Search {
 			String str = "%d-3s|%d-5s|%s-15s|%d-5s|%s-19s|%s-5s|%s-5s|%s-16s|%d-3s|%s-13s|%s-13s"
 					+ "|%d-4s|%s-16s";
 			str = String.format(str, rs.getInt("rno"), rs.getInt("price"), rs.getDate("rdate").toString(),
-					rs.getInt("r.seats"), rs.getString("lugDesc"), rs.getString("src"), rs.getString("dest"),
+					rs.getInt("r.seats"), rs.getString("lugDesc"), rs.getString("src"), rs.getString("dst"),
 					rs.getString("driver"), rs.getInt("cno"), rs.getString("make"), rs.getString("model"),
 					rs.getInt("year"), rs.getString("owner"));
 			System.out.println(str);
@@ -147,7 +147,7 @@ public class Menu_Search {
 		System.out.println("Enter the Rno of the ride or type <Cancel> to return");
 		rno = scanner.nextInt();
 		System.out.println("Enter how many seats you would like to book or type <Cancel> to return");
-		rno = scanner.nextInt();
+		seats = scanner.nextInt();
 		String msg = String.format("Hi! I would like to book %d seats on %d.", rno, seats);
 		// need to query to get reciever of msg then insert new message
 		PreparedStatement findReciever = conn.prepareStatement("select distinct driver from rides"
