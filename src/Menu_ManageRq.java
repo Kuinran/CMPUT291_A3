@@ -76,21 +76,21 @@ public class Menu_ManageRq {
 	
 	private void delete(String usr, Scanner scanner, Connection conn) {
 		//consider edge cases
-		listAll(usr);
+		int ridList[] = listAll(usr);
 		System.out.println("Select one ID of request you wish to delete.");
 		int id = scanner.nextInt();
 		
-		String sql = "delete from requests where rid = ? and email = ?";
-		
-		try(//Connection conn = JDBC_Connection.connect();
-				PreparedStatement pstmt = conn.prepareStatement(sql)){
-			pstmt.setInt(1, id);
-			pstmt.setString(2, usr);
-			pstmt.executeUpdate();
-			
-		} catch (SQLException e){
-			System.out.println(e.getMessage());	
-		}
+//		String sql = "delete from requests where rid = ? and email = ?";
+		//
+//		try(//Connection conn = JDBC_Connection.connect();
+//				PreparedStatement pstmt = conn.prepareStatement(sql)){
+//			pstmt.setInt(1, id);
+//			pstmt.setString(2, usr);
+//			pstmt.executeUpdate();
+//			
+//		} catch (SQLException e){
+//			System.out.println(e.getMessage());	
+//		}
 		System.out.println("Would you like to delete another request? enter yes or no.");
 		String del = scanner.next().toLowerCase();
 		while (!del.equals("yes") || !del.equals("no")) {
@@ -104,7 +104,7 @@ public class Menu_ManageRq {
 		}
 	}
 	
-	private int listAll(String usr) {
+	private int[] listAll(String usr) {
 		List<Integer> count = new ArrayList<>();
 		String sql = "select rid, rdate, pickup, dropoff, amount from requests where requests.email = ?";
 		try (Connection conn = JDBC_Connection.connect();
@@ -124,8 +124,27 @@ public class Menu_ManageRq {
 		}  catch (SQLException e) {
 			System.out.println(e.getMessage());
 		}
-		int i = count.get(count.size()-1);
-		return i;
+		//int i = count.get(count.size()-1);
+		int ridList[] = new int[count.size()];
+		for (int i = 0; i < count.size(); i++) {
+			ridList[i] = count.get(i);
+		}
+		return ridList;
+	}
+	
+	private void DeleteRow() {
+		
+		String sql = "delete from requests where rid = ? and email = ?";
+		
+		try(Connection conn = JDBC_Connection.connect();
+				PreparedStatement pstmt = conn.prepareStatement(sql)){
+			pstmt.setInt(1, id);
+			pstmt.setString(2, usr);
+			pstmt.executeUpdate();
+			
+		} catch (SQLException e){
+			System.out.println(e.getMessage());	
+		}
 	}
 	
 	
