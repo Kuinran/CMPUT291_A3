@@ -69,7 +69,7 @@ public class Menu_PostRq{
 			}catch (SQLException e) {
 				System.out.println(e.getMessage());
 			}		
-			int e = rid.get(rid.size()-1);
-			return e+1;
+			int i = rid.get(rid.size()-1);
+			return i+1;
 		}
 }

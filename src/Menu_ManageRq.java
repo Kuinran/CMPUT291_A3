@@ -15,12 +15,14 @@ public class Menu_ManageRq {
 	}
 	
 	private void mode (Scanner scanner, String usr, Connection conn) {
-		System.out.println("Enter 'Search' or 'Delete' to continue");
+		System.out.println("Enter 'Search', 'Delete', or 'exit'");
 		String input = scanner.next().toLowerCase();
 		if (input.equals("search")) {
 			search(scanner, conn);
 		} else if (input.equals("delete")) {
 			delete(usr, scanner, conn);
+		} else if (input.equals("exit")) {
+			new Menu_Main(usr, scanner, conn);
 		} else {
 			System.out.println("Invalid input");
 			new Menu_ManageRq(usr, scanner, conn);
@@ -69,19 +71,21 @@ public class Menu_ManageRq {
 				return 2;	//2 if city
 			}
 		}
-		return 0;
+		return 0;	//0 if no match
 	}
 	
 	private void delete(String usr, Scanner scanner, Connection conn) {
+		//consider edge cases
 		listAll(usr);
 		System.out.println("Select one ID of request you wish to delete.");
 		int id = scanner.nextInt();
 		
-		String sql = "delete from requests where rid = ?";
+		String sql = "delete from requests where rid = ? and email = ?";
 		
 		try(//Connection conn = JDBC_Connection.connect();
 				PreparedStatement pstmt = conn.prepareStatement(sql)){
 			pstmt.setInt(1, id);
+			pstmt.setString(2, usr);
 			pstmt.executeUpdate();
 			
 		} catch (SQLException e){
@@ -100,7 +104,8 @@ public class Menu_ManageRq {
 		}
 	}
 	
-	private void listAll(String usr) {
+	private int listAll(String usr) {
+		List<Integer> count = new ArrayList<>();
 		String sql = "select rid, rdate, pickup, dropoff, amount from requests where requests.email = ?";
 		try (Connection conn = JDBC_Connection.connect();
 				PreparedStatement pstmt = conn.prepareStatement(sql)){
@@ -108,6 +113,7 @@ public class Menu_ManageRq {
 				ResultSet rs = pstmt.executeQuery();
 				System.out.println("ID");
 				while(rs.next()) {
+					count.add(rs.getInt("rid"));
 					System.out.println(rs.getInt("rid") + "\t" +
 									rs.getString("rdate") + "\t" +
 									rs.getString("pickup") + "\t" +
@@ -118,6 +124,9 @@ public class Menu_ManageRq {
 		}  catch (SQLException e) {
 			System.out.println(e.getMessage());
 		}
+		int i = count.get(count.size()-1);
+		return i;
 	}
+	
 	
 }
