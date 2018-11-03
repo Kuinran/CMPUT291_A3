@@ -1,5 +1,6 @@
 import java.io.Console;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -23,7 +24,8 @@ public class Menu_Login {
 		Console cnsl = null;
 		System.out.print("Email: ");
 		String[] usrData = new String[2];
-		usrData[0] = Helpers.safeString(scanner.next().toLowerCase());
+		
+		usrData[0] = scanner.next().toLowerCase();
 		System.out.println();
 		System.out.print("Password: ");
 		try { // if using cmd line can use console to hide password TODO: test this in console
@@ -32,19 +34,24 @@ public class Menu_Login {
 		} catch (Exception e) {
 			password = scanner.next().toLowerCase();
 		}
-		usrData[1] = Helpers.safeString(password);
+		usrData[1] = password;
 		System.out.println();
 		return usrData;
 	}
 	
 	private static void login(Scanner scanner) { // get credentials and check if they match database
 		String[] usr = getCred(scanner); // io
-	
-		String sql = String.format("select * from members where email = '%s' and pwd = '%s';", usr[0], usr[1]);
-		try { // connect and check credential
+		
+		String sql = "select * from members where email = ? and pwd = ?";
+		
+		try ( // connect and check credential
 			Connection conn = JDBC_Connection.connect();
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
+			
+				PreparedStatement pstmt = conn.prepareStatement(sql))
+				{
+			pstmt.setString(1, usr[0]);
+			pstmt.setString(2, usr[1]);
+			ResultSet rs = pstmt.executeQuery();
 			if (!rs.next()) { // if no matches are returned
 				System.out.println("Incorrect Login Credentials, terminating program");
 				return;
@@ -60,24 +67,33 @@ public class Menu_Login {
 	private static void register(Scanner scanner) { // check input and add new member if not currently in db
 		String[] usr = getCred(scanner);
 		System.out.print("Name: ");
-		String name = Helpers.safeString(scanner.next());
+		String name = scanner.next();
 		System.out.println();
 		System.out.print("Phone # (###-###-####): ");
-		String phone = (Helpers.safeString(scanner.next()));
-		String sql = String.format("select * from members where email = '%s';", usr[0]);
-		try { // connect
+		String phone = scanner.next();
+		
+		String sql = "select * from members where email = ?";
+		String sqlupdate = "insert into members(email, name, phone, pwd) Values(?,?,?,?)";
+		try (
 			Connection conn = JDBC_Connection.connect();
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
+			
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				PreparedStatement stmt = conn.prepareStatement(sqlupdate))
+				{
+			pstmt.setString(1, usr[0]);
+			ResultSet rs = pstmt.executeQuery();
 			if (rs.next()) {
 				// user exists already, query returned nothing
 				System.out.println("User already exists, terminating program");
 				return;
 			} else {
-				// create login
-				sql = String.format("insert into members (email, name, phone, pwd) "
-						+ "values ('%s', '%s', '%s', '%s')", usr[0], name, phone, usr[1]);
-				if (!stmt.execute(sql)) { // successful insertion
+			
+				stmt.setString(1, usr[0]);
+				stmt.setString(2, name);
+				stmt.setString(3, phone);
+				stmt.setString(4, usr[1]);
+				int update = stmt.executeUpdate();
+				if (update>0) { // successful insertion
 					System.out.println("Registration Successful");
 				} else {
 					System.out.println("Registration Failed, terminating program");

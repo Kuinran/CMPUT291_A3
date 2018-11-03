@@ -21,7 +21,7 @@ public class Menu_Main {
 			case "2": new Menu_Search(usr, scanner, conn);
 			case "3": new Menu_Book();
 			case "4": new Menu_PostRq(usr, scanner, conn);
-			case "5": new Menu_ManageRq();
+			case "5": new Menu_ManageRq(usr, scanner, conn);
 			case "6": new Menu_Login(scanner);
 			case "7": System.out.println("Stopping"); return;
 			default : System.out.println("Invalid option, please try again");
