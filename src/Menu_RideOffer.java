@@ -19,26 +19,83 @@ public class Menu_RideOffer {
 		RideOffer(scanner,usr,conn);
 	}
 	private void RideOffer(Scanner scanner, String usr, Connection conn){
-		System.out.println("date (YYYY-MM-DD)\n");
-		String date = scanner.next();
-		System.out.println("number of seats\n");
+		System.out.println("Enter date (YYYY-MM-DD):\n");
+		String rdate = scanner.next();
+		System.out.println("Enter number of seats:\n");
 		String s = scanner.next();
-		int numseats = Integer.parseInt(s);
-		System.out.println("price\n");
+		int seats = Integer.parseInt(s);
+		System.out.println("Enter price:\n");
 		String p = scanner.next();
 		int price = Integer.parseInt(p);
-		System.out.println("Luggage Description\n");  //eg: small bag
-		String luggage = scanner.next();
-		System.out.println("src location code\n");
-		String pickup = scanner.next();
-		validate_location(scanner,usr,conn,pickup);
-		System.out.println("dst location code\n");
-		String dropoff = scanner.next();
+		System.out.println("Enter Luggage Description:\n");  //eg: small bag
+		String lugDesc = scanner.next();
+		System.out.println("Enter src location code:\n");
+		String uplocation = scanner.next();
+		String src = validate_location(scanner,usr,conn,uplocation);
+		System.out.println(src);
+		System.out.println("Enter dst location code:\n");
+		String offlocation = scanner.next();
+		String dst = validate_location(scanner,usr,conn,offlocation);
+		System.out.println(dst);
+		int rno = GenRNO(conn);
+		while(true) {
+			System.out.println("Do you wish to enter a enroute location?\n1- yes\n0- no");
+			String a = scanner.next();
+			int respons = Integer.parseInt(a);
+			if(respons == 0) {
+				break;
+			}
+			else {
+				System.out.println("Enter lcode of enroute location:");
+				String en = scanner.next();
+				String enroute = validate_location(scanner,usr,conn,en);
+				String sql = String.format("insert into enroute values (%d,%s)", rno,enroute);
+				try {
+				Statement statement = conn.createStatement();
+
+				// insert the data
+				statement.executeUpdate(sql);
+				}
+				catch(SQLException e) {
+					System.out.println(e.getMessage());
+				}
+			
+				}
+		}
 		
-	}
-public void validate_location(Scanner scanner, String usr, Connection conn, String location) {
-	//first chunk of code here checks if the lcode is a valid lcode
-	String checklcode = String.format("select lcode from locations where lcode = '%s';", location);
+		System.out.println("Do you wish to enter you car number?\n1- yes\n0- no");
+		String a = scanner.next();
+		int respons = Integer.parseInt(a);
+		int cno = 0;
+		if(respons==1) {
+			System.out.println("enter your cno:");
+			while(true) {
+			cno = Integer.parseInt(scanner.next());
+			cno = validate_cno(scanner,usr,conn,cno);
+			if (cno!=-1) {break;}
+			}	
+		}
+		
+		//String finalsql = String.format("insert into rides values(%d, %d, %s, %d, %s, %s, %s, %s, %s, %d)", 
+				//rno,price,rdate,seats,lugDesc,src,dst,usr,cno);
+		try {
+			Statement statement = conn.createStatement();
+		
+			// insert the data
+		statement.executeUpdate("insert into cars values (1,'Nissan','path',2006,4,'m@gmail.com')");
+		}
+		catch(SQLException e) {
+			System.out.println(e.getMessage());
+		}
+		}
+	
+	//TODO: add a case where user enters a code that is not a lcode key or a key substring found in city, prov, address(rare case)
+	public String validate_location(Scanner scanner, String usr, Connection conn, String location) {
+		List<String> lcodelist = new ArrayList<>();
+	String checklcode = String.format("select lcode from locations where lcode = '%s'", location);
+	String finds = String.format("select * from locations where (city LIKE '%%%s%%') OR (prov LIKE '%%%s%%') OR (address LIKE '%%%s%%')",
+			location, location, location);
+	
 	//These string are just for testing. Remove later
 	//String s1 = "insert into locations values ('ab4','Calgary','Alberta','111 Edmonton Tr');";
 	//String s2 = "insert into locations values ('ab5','Calgary','Alberta','Airport');";
@@ -46,12 +103,79 @@ public void validate_location(Scanner scanner, String usr, Connection conn, Stri
 	
 	try{
 		Statement stmt = conn.createStatement();
-		//ResultSet rs1 = stmt.executeQuery(checklcode);
+		ResultSet rs1 = stmt.executeQuery(checklcode);
+		if(rs1.next()){
+			System.out.println("Correct code");
+			return location; //this means that indeed a correct lcode was inputted
+		}
+		System.out.println("incorrect code. Did you meen to select from");
+		ResultSet rs2 = stmt.executeQuery(finds);
+		int counter = 1;
+		while(rs2.next()) {
+		System.out.println(counter + "- " + rs2.getString(1) + " " + rs2.getString(2) + " " + rs2.getString(3) + " " + rs2.getString(4));
+		lcodelist.add(rs2.getString(1));
+		if (counter % 5 == 0) {
+			System.out.println("select a location, or press 0 to see more");
+			String a = scanner.next();
+			int answer = Integer.parseInt(a);
+			if(answer == 0) {
+				continue;
+			}
+			else {
+				return lcodelist.get(answer-1);
+			}
+		}
+		counter++;
+		}
+		System.out.println("select a location");
+		String a = scanner.next();
+		int answer = Integer.parseInt(a);
+		String f = lcodelist.get(answer-1);
+		return f;
 	}
 	catch(SQLException e) {
 		System.out.println(e.getMessage());
 	}
-}
-
-
+	return "failed";
+	}
+	
+	public int validate_cno(Scanner scanner, String usr, Connection conn, int cno) {
+		String sql = String.format("select cno from cars, members where members.email = cars.owner and cars.cno = %d",cno);
+		try{
+			Statement stmt = conn.createStatement();
+			ResultSet rs1 = stmt.executeQuery(sql);
+			if(rs1.next()) {
+				return cno;
+			}
+			else {
+				System.out.println("Cno not found under user name. Please enter a valid cno:");
+				return -1;
+			}
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+		}
+		return 1;
+		}
+	
+	public int GenRNO(Connection conn){
+		List<Integer> rno = new ArrayList<>();
+		String sql = "SELECT rno FROM rides";
+		
+		try {
+				Statement stmt  = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(sql);
+			if(rs.next()) {
+				while(rs.next()) {
+					rno.add(rs.getInt("rno"));
+				}
+			}else {
+				return 0;
+			}
+		}catch (SQLException e) {
+			System.out.println(e.getMessage());
+		}		
+		int e = rno.get(rno.size()-1);
+		return e+1;
+	}
 }
