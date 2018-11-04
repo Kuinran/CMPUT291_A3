@@ -5,8 +5,8 @@ import java.util.Scanner;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+//import java.text.DateFormat;
+//import java.text.SimpleDateFormat;
 import java.sql.ResultSet;
 //probably need to import more shit >.<
 
@@ -29,21 +29,20 @@ public class Menu_PostRq{
 			String p = scanner.next();
 			int price = Integer.parseInt(p);
 			
-			Insert(usr, date, pickup, dropoff, price);
+			Insert(usr, date, pickup, dropoff, price, conn);
 			new Menu_Main(usr, scanner, conn);
 		}
 		
-		private void Insert (String email, String date, String pickup, String dropoff, int price)	{
+		private void Insert (String email, String date, String pickup, String dropoff, int price, Connection conn)	{
 			//TODO check date format, and change pickup and dropoff to location codes			
 			
 			String sql = "INSERT INTO requests(rid, email, rdate, pickup, dropoff, amount) VALUES(?,?,?,?,?,?)";
-			int rid = GenRID();
-			try (Connection conn = JDBC_Connection.connect();
-					PreparedStatement pstmt = conn.prepareStatement(sql)){
+			int rid = GenRID(conn);
+			try (PreparedStatement pstmt = conn.prepareStatement(sql)){
 				pstmt.setInt(1, rid);
 				pstmt.setString(2, email);
-				DateFormat rdate = new SimpleDateFormat("yyyy-MM-dd");
-				pstmt.setString(3, rdate.format(date));
+				//DateFormat rdate = new SimpleDateFormat("dd-MM-yyyy");
+				pstmt.setDate(3, java.sql.Date.valueOf(date));
 				pstmt.setString(4, pickup);
 				pstmt.setString(5, dropoff);
 				pstmt.setInt(6, price);
@@ -52,12 +51,11 @@ public class Menu_PostRq{
 				System.out.println(e.getMessage());
 			}	
 		}
-		private int GenRID(){
+		private int GenRID(Connection conn){
 			List<Integer> rid = new ArrayList<>();
 			String sql = "SELECT rid FROM requests";
 			
-			try (Connection conn = JDBC_Connection.connect();
-					Statement stmt  = conn.createStatement();
+			try (	Statement stmt  = conn.createStatement();
 					ResultSet rs    = stmt.executeQuery(sql)){
 				if(rs.next()) {
 					while(rs.next()) {
