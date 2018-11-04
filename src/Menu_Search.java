@@ -122,8 +122,8 @@ public class Menu_Search {
 		while (rs.next() || i < MAX_RIDES_PER_PAGE) {
 			String str = "%d-3s|%d-5s|%s-15s|%d-5s|%s-19s|%s-5s|%s-5s|%s-16s|%d-3s|%s-13s|%s-13s"
 					+ "|%d-4s|%s-16s";
-			str = String.format(str, rs.getInt("rno"), rs.getInt("price"), rs.getDate("rdate").toString(),
-					rs.getInt("r.seats"), rs.getString("lugDesc"), rs.getString("src"), rs.getString("dst"),
+			str = String.format(str, rs.getInt("rno"), rs.getInt("price"), rs.getString("rdate"),
+					rs.getInt("seats"), rs.getString("lugDesc"), rs.getString("src"), rs.getString("dst"),
 					rs.getString("driver"), rs.getInt("cno"), rs.getString("make"), rs.getString("model"),
 					rs.getInt("year"), rs.getString("owner"));
 			System.out.println(str);

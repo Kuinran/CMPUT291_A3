@@ -5,12 +5,23 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 public class JDBC_Connection { // class for connecting and reusable functions involving connections
-	public static Connection connect() throws SQLException{
+	public static Connection connect() throws SQLException {
 		Connection conn = null;
 		try {
 			conn = DriverManager.getConnection("jdbc:sqlite:C:/sqlite/CMPUT291/tables.db");
 			System.out.println("Connection Successful");
-		} catch (SQLException e){
+		} catch (SQLException e) {
+			System.out.println("Error: Could not connect to server");
+		}
+		return conn;
+	}
+	
+	public static Connection connect(String url) {
+		Connection conn = null;
+		try {
+			conn = DriverManager.getConnection(url);
+			System.out.println("Connection Successful");
+		} catch (SQLException e) {
 			System.out.println("Error: Could not connect to server");
 		}
 		return conn;
