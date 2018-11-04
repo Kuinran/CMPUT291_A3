@@ -5,7 +5,7 @@ public class Main {
 	public static void main(String[] args) {
 		// start program
 		Connection conn = null;
-		if (args[0].isEmpty()) {
+		if (args.length < 1) {
 			try {
 				conn = JDBC_Connection.connect();
 			} catch (SQLException e) {System.out.println("Failed to connect to database");}
