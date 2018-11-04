@@ -9,9 +9,12 @@ import java.util.List;
 
 public class Menu_ManageRq {
 	private String usr;
-	Menu_ManageRq(String usr, Scanner scanner, Connection conn) throws SQLException {
+	Menu_ManageRq(String usr, Scanner scanner, Connection conn) {
 		this.usr = usr;
-		mode(scanner, usr, conn);
+		try {
+			mode(scanner, usr, conn);
+		} catch (SQLException e) {}
+
 	}
 	
 	private void mode (Scanner scanner, String usr, Connection conn) throws SQLException {
