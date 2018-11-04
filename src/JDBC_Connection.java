@@ -8,7 +8,7 @@ public class JDBC_Connection { // class for connecting and reusable functions in
 	public static Connection connect() throws SQLException {
 		Connection conn = null;
 		try {
-			conn = DriverManager.getConnection("jdbc:sqlite:C:/sqlite/CMPUT291/tables.db");
+			conn = DriverManager.getConnection("jdbc:sqlite:tables.db");
 			System.out.println("Connection Successful");
 		} catch (SQLException e) {
 			System.out.println("Error: Could not connect to server");
@@ -16,10 +16,10 @@ public class JDBC_Connection { // class for connecting and reusable functions in
 		return conn;
 	}
 	
-	public static Connection connect(String url) {
+	public static Connection connect(String url) throws SQLException {
 		Connection conn = null;
 		try {
-			conn = DriverManager.getConnection(url);
+			conn = DriverManager.getConnection("jdbc:sqlite:" + url);
 			System.out.println("Connection Successful");
 		} catch (SQLException e) {
 			System.out.println("Error: Could not connect to server");

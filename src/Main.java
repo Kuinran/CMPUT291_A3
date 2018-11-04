@@ -5,9 +5,16 @@ public class Main {
 	public static void main(String[] args) {
 		// start program
 		Connection conn = null;
-		try {
-			conn = JDBC_Connection.connect();
-		} catch (SQLException e) {System.out.println("Failed to connect to database");}
+		if (args[0].isEmpty()) {
+			try {
+				conn = JDBC_Connection.connect();
+			} catch (SQLException e) {System.out.println("Failed to connect to database");}
+		} else {
+			try {
+				conn = JDBC_Connection.connect(args[0]);
+			} catch (SQLException e) {System.out.println("Failed to connect to database");}
+		}
+
 		Scanner scanner = new Scanner(System.in);
 		new Menu_Login(scanner, conn);
 		scanner.close();
