@@ -49,6 +49,7 @@ public class Menu_Search {
 					printPage();
 				} catch (SQLException e) {
 					System.out.println("An error has occured, returning to previous menu");
+					e.printStackTrace();
 					state = State.MAIN;
 					continue;
 				}

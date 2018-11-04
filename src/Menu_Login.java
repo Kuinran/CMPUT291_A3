@@ -7,19 +7,24 @@ import java.sql.Statement;
 import java.util.Scanner;
 
 public class Menu_Login {
-	Menu_Login(Scanner scanner) {
+	private Connection conn;
+	private Scanner scanner;
+	
+	Menu_Login(Scanner scanner, Connection conn) {
 		System.out.println("'Login' or 'Register' to continue");
 		String input = scanner.next().toLowerCase();
+		this.scanner = scanner;
+		this.conn = conn;
 		if (input.equals("register")) {
-			register(scanner);
+			register();
 		} else if  (input.equals("login")) {
-			login(scanner);
+			login();
 		} else {
 			System.out.println("Invalid input, terminating program");
 		}	
 	}
 	
-	private static String[] getCred(Scanner scanner) { // get user and password data, email is case insensitive
+	private String[] getCred() { // get user and password data, email is case insensitive
 		String password = "";
 		Console cnsl = null;
 		System.out.print("Email: ");
@@ -39,13 +44,12 @@ public class Menu_Login {
 		return usrData;
 	}
 	
-	private static void login(Scanner scanner) { // get credentials and check if they match database
-		String[] usr = getCred(scanner); // io
+	private void login() { // get credentials and check if they match database
+		String[] usr = getCred(); // io
 		
 		String sql = "select * from members where email = ? and pwd = ?";
 		
 		try ( // connect and check credential
-			Connection conn = JDBC_Connection.connect();
 			
 				PreparedStatement pstmt = conn.prepareStatement(sql))
 				{
@@ -64,8 +68,8 @@ public class Menu_Login {
 		return;
 	}
 	
-	private static void register(Scanner scanner) { // check input and add new member if not currently in db
-		String[] usr = getCred(scanner);
+	private void register() { // check input and add new member if not currently in db
+		String[] usr = getCred();
 		System.out.print("Name: ");
 		String name = scanner.next();
 		System.out.println();

@@ -1,5 +1,6 @@
 import java.util.Scanner;
 import java.sql.Connection;
+import java.sql.SQLException;
 
 public class Menu_Main {
 	private String usr;
@@ -24,7 +25,7 @@ public class Menu_Main {
 			case "3": new Menu_Book(); break;
 			case "4": new Menu_PostRq(usr, scanner, conn); break;
 			case "5": new Menu_ManageRq(usr, scanner, conn); break;
-			case "6": new Menu_Login(scanner); break;
+			case "6": new Menu_Login(scanner, conn); break;
 			case "7": System.out.println("Stopping"); state = State.QUIT; break;
 			default : System.out.println("Invalid option, please try again"); break;
 			}
