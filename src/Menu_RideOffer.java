@@ -38,31 +38,8 @@ public class Menu_RideOffer {
 		String dst = validate_location(scanner,usr,conn,offlocation);
 		System.out.println(dst);
 		int rno = GenRNO(conn);
-		while(true) {
-			System.out.println("Do you wish to enter a enroute location?\n1- yes\n0- no");
-			String a = scanner.next();
-			int respons = Integer.parseInt(a);
-			if(respons == 0) {
-				break;
-			}
-			else {
-				System.out.println("Enter lcode of enroute location:");
-				String en = scanner.next();
-				String enroute = validate_location(scanner,usr,conn,en);
-				String sql = String.format("insert into enroute values (%d,%s)", rno,enroute);
-				try {
-				Statement statement = conn.createStatement();
-
-				// insert the data
-				statement.executeUpdate(sql);
-				}
-				catch(SQLException e) {
-					System.out.println(e.getMessage());
-				}
-			
-				}
-		}
-		
+		System.out.println("The rno is: " + rno);
+		enrouteprocess(usr,scanner,conn,rno);
 		System.out.println("Do you wish to enter you car number?\n1- yes\n0- no");
 		String a = scanner.next();
 		int respons = Integer.parseInt(a);
@@ -79,10 +56,13 @@ public class Menu_RideOffer {
 		//String finalsql = String.format("insert into rides values(%d, %d, %s, %d, %s, %s, %s, %s, %s, %d)", 
 				//rno,price,rdate,seats,lugDesc,src,dst,usr,cno);
 		try {
-			Statement statement = conn.createStatement();
-		
-			// insert the data
-		statement.executeUpdate("insert into cars values (1,'Nissan','path',2006,4,'m@gmail.com')");
+			String finalsql = "insert into cars values (1,'Nissan','path',2006,4,'m@gmail.com')";
+			PreparedStatement statement = conn.prepareStatement(finalsql);
+		statement.executeUpdate();
+			
+			//Connection conn2 = JDBC_Connection.connect();
+			//Statement statement = conn2.createStatement();
+			//statement.executeUpdate("insert into cars values (1,'Nissan','path',2006,4,'m@gmail.com')");
 		}
 		catch(SQLException e) {
 			System.out.println(e.getMessage());
@@ -92,18 +72,20 @@ public class Menu_RideOffer {
 	//TODO: add a case where user enters a code that is not a lcode key or a key substring found in city, prov, address(rare case)
 	public String validate_location(Scanner scanner, String usr, Connection conn, String location) {
 		List<String> lcodelist = new ArrayList<>();
-	String checklcode = String.format("select lcode from locations where lcode = '%s'", location);
+	String checklcode = "select lcode from locations where lcode = ?";
 	String finds = String.format("select * from locations where (city LIKE '%%%s%%') OR (prov LIKE '%%%s%%') OR (address LIKE '%%%s%%')",
 			location, location, location);
-	
+
 	//These string are just for testing. Remove later
 	//String s1 = "insert into locations values ('ab4','Calgary','Alberta','111 Edmonton Tr');";
 	//String s2 = "insert into locations values ('ab5','Calgary','Alberta','Airport');";
 	//String s3 = "insert into locations values ('ab6','Red Deer','Alberta','City Hall');";
 	
 	try{
+		PreparedStatement st1 = conn.prepareStatement(checklcode);
+		st1.setString(1,location);
 		Statement stmt = conn.createStatement();
-		ResultSet rs1 = stmt.executeQuery(checklcode);
+		ResultSet rs1 = st1.executeQuery();
 		if(rs1.next()){
 			System.out.println("Correct code");
 			return location; //this means that indeed a correct lcode was inputted
@@ -115,7 +97,7 @@ public class Menu_RideOffer {
 		System.out.println(counter + "- " + rs2.getString(1) + " " + rs2.getString(2) + " " + rs2.getString(3) + " " + rs2.getString(4));
 		lcodelist.add(rs2.getString(1));
 		if (counter % 5 == 0) {
-			System.out.println("select a location, or press 0 to see more");
+			System.out.println("press number to select a location, or press 0 to see more");
 			String a = scanner.next();
 			int answer = Integer.parseInt(a);
 			if(answer == 0) {
@@ -127,7 +109,7 @@ public class Menu_RideOffer {
 		}
 		counter++;
 		}
-		System.out.println("select a location");
+		System.out.println("press number to select a location");
 		String a = scanner.next();
 		int answer = Integer.parseInt(a);
 		String f = lcodelist.get(answer-1);
@@ -177,5 +159,34 @@ public class Menu_RideOffer {
 		}		
 		int e = rno.get(rno.size()-1);
 		return e+1;
+	}
+	public void enrouteprocess(String usr, Scanner scanner, Connection conn,int rno) {
+		while(true) {
+			System.out.println("Do you wish to enter a enroute location?\n1- yes\n0- no");
+			String a = scanner.next();
+			int respons = Integer.parseInt(a);
+			if(respons == 0) {
+				break;
+			}
+			else {
+				System.out.println("Enter lcode of enroute location:");
+				String en = scanner.next();
+				String enroute = validate_location(scanner,usr,conn,en);
+				System.out.println("inserting enroute values");
+				String sql = "insert into enroute values (?,?)";
+				try {
+				PreparedStatement pst = conn.prepareStatement(sql);
+				pst.setInt(1, rno);
+				pst.setString(2, enroute);
+	
+				pst.executeUpdate();
+				System.out.print("Success!");
+				}
+				catch(SQLException e) {
+					System.out.println(e.getMessage());
+				}
+			
+				}
+		}
 	}
 }
