@@ -17,13 +17,17 @@ public class Menu_ManageRq {
 
 	}
 	
-	private void mode (Scanner scanner, String usr, Connection conn) throws SQLException {
+	private void mode (Scanner scanner, String usr, Connection conn) {
 		System.out.println("Enter 'Search', 'Delete', or 'exit'");
 		String input = scanner.next().toLowerCase();
 		if (input.equals("search")) {
-			search(scanner, conn);
+			try{
+				search(scanner, conn);
+			}  catch (SQLException e) {
+				System.out.println(e.getMessage());	
+			}
 		} else if (input.equals("delete")) {
-			delete(usr, scanner, conn);
+				delete(usr, scanner, conn);
 		} else if (input.equals("exit")) {
 			new Menu_Main(usr, scanner, conn);
 		} else {
@@ -35,23 +39,27 @@ public class Menu_ManageRq {
 	private void search(Scanner scanner, Connection conn) throws SQLException {
 		System.out.println("Enter a city or location code of the pickup location");
 		String location = scanner.next().toLowerCase();
-		int i = parseUlocation(location);
+		int i = parseUlocation(location, conn);
 		if (i == 0) {
 			System.out.println("Invalid input, please try again");
 			search(scanner, conn);
 		}
-		ListSearch(i, location, scanner, conn);
+		String list[] = ListSearch(i, location, scanner, conn);
 		//message user
 	}
 	
-	private int parseUlocation(String location)throws SQLException {//check if input is lcode or city
+	private void MessageUsr() {
+		
+		
+	}
+	
+	private int parseUlocation(String location, Connection conn)throws SQLException {//check if input is lcode or city
 		List<String> loccode = new ArrayList<>();
 		List<String> loccity = new ArrayList<>();
 		String code = "select lcode from locations";
 		String city = "select city from locations";
 		
-		try (Connection conn = JDBC_Connection.connect();
-				Statement stmt = conn.createStatement();
+		try (Statement stmt = conn.createStatement();
 				ResultSet rs1 = stmt.executeQuery(code);
 				ResultSet rs2 = stmt.executeQuery(city)){
 			
@@ -82,7 +90,7 @@ public class Menu_ManageRq {
 		return 0;	//0 if no match
 	}
 	
-	private void ListSearch(int i, String location, Scanner scanner, Connection conn) throws SQLException {
+	private String[] ListSearch(int i, String location, Scanner scanner, Connection conn) throws SQLException {
 		List<String> count = new ArrayList<>();
 		String lcodesql = "select rid, rdate, pickup, dropoff, amount from requests where pickup = ?";
 		String citysql = "select rid, rdate, pickup, dropoff, amount from requests, location where location.lcode = pickup and city = ?";
@@ -136,6 +144,7 @@ public class Menu_ManageRq {
 				k++;
 			}
 		}
+		return List;
 	}
 	
 	private String[] UpdateList(String list[], int mod) {
@@ -152,14 +161,15 @@ public class Menu_ManageRq {
 		}
 	}
 	
-	private void delete(String usr, Scanner scanner, Connection conn) throws SQLException {
-		
-		int ridList[] = listAll(usr);
+	private void delete(String usr, Scanner scanner, Connection conn) {
+		//TODO fix more edge cases
+		int ridList[] = listAll(usr, conn);
+		int rListSize = ridList.length;
 		System.out.println("Select one ID of request you wish to delete.");
 		int id = scanner.nextInt();
 		for (int i = 0; i < ridList.length; i++) {
 			if (id == ridList[i]) {
-				DeleteRow(id, scanner, conn);
+				DeleteRow(id, scanner, conn, rListSize);
 			}
 		}
 		System.out.println("Invalid rid, please try again.");
@@ -167,18 +177,17 @@ public class Menu_ManageRq {
 
 	}
 	
-	private int[] listAll(String usr){
+	private int[] listAll(String usr, Connection conn){
 		List<Integer> count = new ArrayList<>();
 		String sql = "select rid, rdate, pickup, dropoff, amount from requests where requests.email = ?";
-		try (Connection conn = JDBC_Connection.connect();
-				PreparedStatement pstmt = conn.prepareStatement(sql)){
+		try (PreparedStatement pstmt = conn.prepareStatement(sql)){
 				pstmt.setString(1, usr);
 				ResultSet rs = pstmt.executeQuery();
 				System.out.println("ID");
 				while(rs.next()) {
 					count.add(rs.getInt("rid"));
 					System.out.println(rs.getInt("rid") + "\t" +
-									rs.getString("rdate") + "\t" +
+									rs.getDate("rdate") + "\t" +
 									rs.getString("pickup") + "\t" +
 									rs.getString("dropoff") + "\t" +
 									rs.getInt("amount"));	
@@ -194,7 +203,7 @@ public class Menu_ManageRq {
 		return ridList;
 	}
 	
-	private void DeleteRow(int id, Scanner scanner, Connection conn) throws SQLException {
+	private void DeleteRow(int id, Scanner scanner, Connection conn, int size){
 		
 		String sql = "delete from requests where rid = ? and email = ?";
 		
@@ -205,6 +214,9 @@ public class Menu_ManageRq {
 			
 		} catch (SQLException e){
 			System.out.println(e.getMessage());	
+		}
+		if (size == 1) {
+			mode(scanner,usr,conn);
 		}
 		System.out.println("Would you like to delete another request? enter yes or no.");
 		String del = scanner.next().toLowerCase();
@@ -217,6 +229,7 @@ public class Menu_ManageRq {
 		} else if (del.equals("no")) {
 			mode(scanner, usr, conn);
 		}
+		
 	}
 	
 }
