@@ -32,7 +32,6 @@ public class Menu_PostRq{
 			int price = Integer.parseInt(p);
 			
 			Insert(date, pickup, dropoff, price, conn);
-				
 		}
 		
 		private void Insert (String date, String pickup, String dropoff, int price, Connection conn)	{

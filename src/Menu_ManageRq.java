@@ -1,135 +1,170 @@
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.Scanner;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class Menu_ManageRq {
-	private String usr;
+	private String Uemail;
+	private Scanner scanner;
+	private Connection conn;
+	private String EmailIn, ListEmail[];
+	private int id, size;
+	private enum State {MAIN, SEARCH, DELETE, QUIT, MSG, NUKE, PRINT};
+	private State state;
 	Menu_ManageRq(String usr, Scanner scanner, Connection conn) {
-		this.usr = usr;
-		mode(scanner, conn);
-		
-
+		this.Uemail = usr;
+		this.scanner = scanner.reset();
+		this.conn = conn;
+		this.mode();
+		this.state = State.MAIN;
+		mode();
 	}
-	
-	private void mode (Scanner scanner, Connection conn) {
-		int i = 0;
-		while(i == 0) { 
+
+	void mode () {
+		//scanner.nextLine();
+		while(this.state != State.QUIT) { 
 			//bug with search
-			System.out.println("Enter 'Search', 'Delete', or 'exit'");
-			String input = scanner.next().toLowerCase();
-			if (input.equals("search")) {
+			if (this.state == State.MAIN ) {
+				Prompt();
+			} else if (this.state == State.SEARCH) {
 				try{
-					search(scanner, conn);
+					search();
 				}  catch (SQLException e) {
 					System.out.println(e.getMessage());	
+					state = State.MAIN;
+					continue;
 				}
-			} else if (input.equals("delete")) {
-				delete(scanner, conn);
-			} else if (input.equals("exit")) {
-				i = 1;
+				
+			} else if (this.state == State.DELETE) {
+				try {
+					delete();
+				} catch (SQLException e) {
+					System.out.println(e.getMessage());
+					state = State.MAIN;
+					continue;
+				}
+				
+			} else if (this.state == State.MSG) {
+				sendMsg();
+			} else if (this.state == State.NUKE) {
+				try {
+					DeleteRow();
+				} catch (SQLException e) {
+					System.out.println(e.getMessage());
+					state = State.MAIN;
+					continue;
+				}
+			} 
+		}
+	}
+	
+	void Prompt() {
+		System.out.println("Enter 'Search', 'Delete', or 'quit'");
+		while(true) {
+			String input = scanner.next().toLowerCase();
+			if (input.equals("quit")) {
+				state = State.QUIT;
+				break;
+			}
+			if (input.equals("search")) {
+				state = State.SEARCH;
+				break;
+			}
+			if (input.equals("delete")) {
+				state = State.DELETE;
 				break;
 			} else {
 				System.out.println("Invalid input");
-				mode(scanner, conn);
+				state = State.MAIN;
+				break;
 			}
 		}
 	}
 	
-	private void search(Scanner scanner, Connection conn) throws SQLException {
+	private void search() throws SQLException {
 		System.out.println("Enter a city or location code of the pickup location, or exit to return");
 		String location = scanner.next().toLowerCase();
-		if(location.equals("exit")) {
-			mode(scanner, conn);
-		}
-		int i = parseUlocation(location, conn);
-		if (i == 0) {
-			System.out.println("Invalid input, please try again");
-			search(scanner, conn);
-		}
-		String list[] = ListSearch(i, location, scanner, conn);
-		//message user
-		MessageUsr(scanner, conn, list);
-		mode(scanner, conn);
-	}
-	
-	private void MessageUsr(Scanner scanner, Connection conn, String Emails[]) {
-		System.out.println("Would you like to send a message? enter yes or no.");
-		String input = scanner.next().toLowerCase();
-		if(input.equals("no")) {
-			mode(scanner, conn);
-		} else if (!input.equals("no") && !input.equals("yes")){
-			System.out.println("invalid input, please enter yes or no.");
-			MessageUsr(scanner, conn, Emails);
-		}
-		System.out.println("Please enter the email of the user you wish to message");
-		String email = scanner.next().toLowerCase();
-		for (int i = 0; i < Emails.length; i++) {
-			if (email == Emails[i]) {
-				sendMsg(email, conn, scanner);
+		
+		switch(location) {
+		case "exit":
+			state = State.MAIN;
+			break;
+		default:
+			int i = parseUlocation(location);
+			if (i == 0) {
+				System.out.println("Invalid input, please try again");
+				state = State.SEARCH;
+				break;
 			}
+			this.ListEmail = ListSearch(i, location);
+			msgPrompt();
 		}
-		System.out.println("Invalid email, please try again");
-		MessageUsr(scanner, conn, Emails);
+	}
+	
+	private void msgPrompt() {
+		System.out.println("Would you like to send a message? enter yes or no.");
+//		String input = scanner.next().toLowerCase();
+		
+		switch(scanner.next().toLowerCase()) {
+		case "no":
+			state = State.MAIN;
+			break;
+		case "yes":
+			System.out.println("Please enter the email of the user you wish to message");
+			String email = scanner.next().toLowerCase();
+			for (int i = 0; i < ListEmail.length; i++) {
+				if (email == ListEmail[i]) {
+					this.EmailIn = email;
+					state = State.MSG;
+					break;
+				}
+			}
+			System.out.println("invald email");
+			state = State.SEARCH;
+			break;
+		default:
+			System.out.println("invalid option");
+			state = State.SEARCH;
+		}
 	}
 	
 	
-	private void sendMsg(String email, Connection conn, Scanner scanner) {
+	private void sendMsg() {
 		System.out.println("Please enter a message, pressing 'enter' will end the message");
 		String message = scanner.next();
-		JDBC_Connection.sendMsg(usr, email, message, -1, conn);
+		JDBC_Connection.sendMsg(Uemail, EmailIn, message, -1, conn);
 		
 	}
 	
-	private int parseUlocation(String location, Connection conn)throws SQLException {//check if input is lcode or city
-		List<String> loccode = new ArrayList<>();
-		List<String> loccity = new ArrayList<>();
+	private int parseUlocation(String location)throws SQLException {//check if input is lcode or city
 		String code = "select * from locations where lcode = ?";
-		String city = "select city from locations";
+		String city = "select * from locations where city = ?";
 		
-		try (Statement stmt = conn.createStatement();
-				PreparedStatement pstmt = conn.prepareStatement(code);
-				ResultSet rs2 = stmt.executeQuery(city)){
-			pstmt.setString(1, location);
-			ResultSet rs1 = pstmt.executeQuery();
-			if (rs1.next() || rs2.next()) {
-				while(rs1.next()) {
-					loccode.add(rs1.getString("lcode").toLowerCase());
-				}
-				while (rs2.next()) {
-					loccity.add(rs2.getString("city").toLowerCase());
-				}
-			} else {
-				return 0;
-			}
+		PreparedStatement stmt = conn.prepareStatement(city);
+		PreparedStatement pstmt = conn.prepareStatement(code);
+		stmt.setString(1, location);
+		pstmt.setString(1, location);
+		ResultSet rs2 = stmt.executeQuery();
+		ResultSet rs1 = pstmt.executeQuery();
+		if (rs1.isBeforeFirst()) {
+			return 1;//1 if lcode
+		}
+		if (rs2.isBeforeFirst())	{
+			return 2;//2 if city
+		}
+		return 0; //0 if no match
 			
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());	
-		}
-		for (int i = 0; i < loccode.size();i++) {
-			if (location == loccode.get(i)) {
-				return 1;	//1 if lcode
-			}
-		}
-		for (int i = 0; i< loccity.size(); i++) {
-			if (location == loccity.get(i)) {
-				return 2;	//2 if city
-			}
-		}
-		return 0;	//0 if no match
 	}
 	
-	private String[] ListSearch(int i, String location, Scanner scanner, Connection conn) throws SQLException {
+	private String[] ListSearch(int i, String location) throws SQLException {
 		List<String> count = new ArrayList<>();
 		List<String> email = new ArrayList<>();
 		String lcodesql = "select rid, email, rdate, pickup, dropoff, amount from requests where pickup = ?";
-		String citysql = "select rid, email, rdate, pickup, dropoff, amount from requests, location where city = ?";
+		String citysql = "select rid, email, rdate, pickup, dropoff, amount from requests, locations where city = ?";
 		
 		if (i == 1) {
 			PreparedStatement pstmt = conn.prepareStatement(lcodesql);
@@ -137,13 +172,13 @@ public class Menu_ManageRq {
 			ResultSet rs = pstmt.executeQuery();
 			while(rs.next()) {
 				String rid = Integer.toString(rs.getInt("rid"));
-				String date = rs.getString("rdate");
+				Date date = rs.getDate("rdate");
 				String Email = rs.getString("email");
 				String pickup = rs.getString("pickup");
 				String dropoff = rs.getString("dropoff");
 				String amt = Integer.toString(rs.getInt("amount"));
-				count.add(rid + "\t" + Email + "\t" + date + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
-				email.add(Email);
+				count.add(rid + "\t" + Email + "\t" + date.toString() + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
+				email.add(rs.getString("email").toLowerCase());
 			}
 			
 		}else if (i == 2) {
@@ -152,12 +187,12 @@ public class Menu_ManageRq {
 				ResultSet rs = pstmt.executeQuery();
 				while(rs.next()) {
 					String rid = Integer.toString(rs.getInt("rid"));
-					String date = rs.getString("rdate");
+					Date date = rs.getDate("rdate");
 					String pickup = rs.getString("pickup");
 					String dropoff = rs.getString("dropoff");
 					String amt = Integer.toString(rs.getInt("amount"));
-					count.add(rid + "\t" + rs.getString("email") + "\t" + date + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
-					email.add(rs.getString("email"));
+					count.add(rid + "\t" + rs.getString("email") + "\t" + date.toString() + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
+					email.add(rs.getString("email").toLowerCase());
 				}
 			}
 		int s = count.size();
@@ -167,7 +202,7 @@ public class Menu_ManageRq {
 			List[j] = count.get(j);
 			emailList[j] = email.get(j);
 		}
-		if (s >= 5) {
+		if (s <= 5) {
 			printList(List, List.length);
 		}else {
 			String all[][] = new String[s/5][];
@@ -203,45 +238,47 @@ public class Menu_ManageRq {
 		}
 	}
 	
-	private void delete(Scanner scanner, Connection conn) {
+	private void delete() throws SQLException {
 		//TODO fix more edge cases
-		int ridList[] = listAll(usr, conn);
-		int rListSize = ridList.length;
+		int ridList[] = listAll();
+		this.size = ridList.length;
 		System.out.println("Select one ID of request you wish to delete, or exit to return");
-		String id = scanner.next();
-		if (id.equals("exit")) {
-			mode(scanner, conn);
-		}
-		for (int i = 0; i < ridList.length; i++) {
+		String id = scanner.next().toLowerCase();
+		
+		switch(id) {
+		case "exit":
+			state = State.MAIN;
+			break;
+		default:
 			int ID = Integer.parseInt(id);
-			if (ID == ridList[i]) {
-				DeleteRow(ID, scanner, conn, rListSize);
+			for (int i = 0; i < ridList.length; i++) {
+				if (ID == ridList[i]) {
+					this.id = ID;
+					state = State.NUKE;
+					break;
+				}
 			}
+			System.out.println("Invalid rid, please try again.");
+			state = State.DELETE;
 		}
-		System.out.println("Invalid rid, please try again.");
-		delete(scanner, conn);
-
 	}
 	
-	private int[] listAll(String usr, Connection conn){
+	private int[] listAll() throws SQLException {
 		List<Integer> count = new ArrayList<>();
 		String sql = "select rid, rdate, pickup, dropoff, amount from requests where requests.email = ?";
-		try (PreparedStatement pstmt = conn.prepareStatement(sql)){
-				pstmt.setString(1, usr);
-				ResultSet rs = pstmt.executeQuery();
-				System.out.println("ID");
-				while(rs.next()) {
-					count.add(rs.getInt("rid"));
-					System.out.println(rs.getInt("rid") + "\t" +
-									rs.getDate("rdate") + "\t" +
-									rs.getString("pickup") + "\t" +
-									rs.getString("dropoff") + "\t" +
-									rs.getInt("amount"));	
+		PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, Uemail);
+			ResultSet rs = pstmt.executeQuery();
+			System.out.println("ID");
+			while(rs.next()) {
+				count.add(rs.getInt("rid"));
+				System.out.println(rs.getInt("rid") + "\t" +
+								rs.getDate("rdate") + "\t" +
+								rs.getString("pickup") + "\t" +
+								rs.getString("dropoff") + "\t" +
+								rs.getInt("amount"));	
 				}
-			
-		}  catch (SQLException e) {
-			System.out.println(e.getMessage());
-		}
+		
 		int ridList[] = new int[count.size()];
 		for (int i = 0; i < count.size(); i++) {
 			ridList[i] = count.get(i);
@@ -249,32 +286,32 @@ public class Menu_ManageRq {
 		return ridList;
 	}
 	
-	private void DeleteRow(int id, Scanner scanner, Connection conn, int size){
+	private void DeleteRow() throws SQLException{
 		
 		String sql = "delete from requests where rid = ? and email = ?";
 		
-		try(PreparedStatement pstmt = conn.prepareStatement(sql)){
+		PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, id);
-			pstmt.setString(2, usr);
+			pstmt.setString(2, Uemail);
 			pstmt.executeUpdate();
 			
-		} catch (SQLException e){
-			System.out.println(e.getMessage());	
-		}
 		if (size == 1) {
-			mode(scanner,conn);
+			mode();
 		}
 		System.out.println("Would you like to delete another request? enter yes or no.");
-		String del = scanner.next().toLowerCase();
-		while (!del.equals("yes") && !del.equals("no")) {
-			System.out.println("please enter yes or no.");
-			del = scanner.next().toLowerCase();
+		
+		switch(scanner.next().toLowerCase()) {
+		case "yes":
+			state = State.DELETE;
+			break;
+		case "no":
+			state = State.MAIN;
+			break;
+		default:
+			System.out.println("invalid input, returning to menu");
+			state = State.MAIN;
 		}
-		if (del.equals("yes")) {
-			delete(scanner, conn);
-		} else if (del.equals("no")) {
-			mode(scanner,conn);
-		}
+
 	}
 	
 }
