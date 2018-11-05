@@ -15,10 +15,10 @@ public class Menu_PostRq{
 	private String usr;
 		Menu_PostRq(String usr, Scanner scanner, Connection conn) {
 			this.usr = usr;
-			post_rq(scanner, usr, conn);
+			post_rq(scanner, conn);
 		}
 		
-		private void post_rq (Scanner scanner, String usr, Connection conn){
+		private void post_rq (Scanner scanner, Connection conn){
 			System.out.println("date (YYYY-MM-DD)\n");
 			String date = scanner.next();
 			System.out.println("pickup location code\n");
@@ -29,18 +29,18 @@ public class Menu_PostRq{
 			String p = scanner.next();
 			int price = Integer.parseInt(p);
 			
-			Insert(usr, date, pickup, dropoff, price, conn);
+			Insert(date, pickup, dropoff, price, conn);
 			new Menu_Main(usr, scanner, conn);
 		}
 		
-		private void Insert (String email, String date, String pickup, String dropoff, int price, Connection conn)	{
+		private void Insert (String date, String pickup, String dropoff, int price, Connection conn)	{
 			//TODO check date format, and change pickup and dropoff to location codes			
 			
 			String sql = "INSERT INTO requests(rid, email, rdate, pickup, dropoff, amount) VALUES(?,?,?,?,?,?)";
 			int rid = GenRID(conn);
 			try (PreparedStatement pstmt = conn.prepareStatement(sql)){
 				pstmt.setInt(1, rid);
-				pstmt.setString(2, email);
+				pstmt.setString(2, usr);
 				//DateFormat rdate = new SimpleDateFormat("dd-MM-yyyy");
 				pstmt.setDate(3, java.sql.Date.valueOf(date));
 				pstmt.setString(4, pickup);
@@ -52,22 +52,22 @@ public class Menu_PostRq{
 			}	
 		}
 		private int GenRID(Connection conn){
-			List<Integer> rid = new ArrayList<>();
+			List<Integer> rids = new ArrayList<>();
 			String sql = "SELECT rid FROM requests";
 			
 			try (	Statement stmt  = conn.createStatement();
 					ResultSet rs    = stmt.executeQuery(sql)){
-				if(rs.next()) {
+				if(rs.isBeforeFirst()) {
 					while(rs.next()) {
-						rid.add(rs.getInt("rid"));
+						rids.add(rs.getInt("rid"));
 					}
-				}else {
+				} else {
 					return 0;
 				}
 			}catch (SQLException e) {
 				System.out.println(e.getMessage());
-			}		
-			int i = rid.get(rid.size()-1);
+			}
+			int i = rids.get(rids.size()-1);
 			return i+1;
 		}
 }

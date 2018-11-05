@@ -1,23 +1,26 @@
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.Scanner;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class Menu_ManageRq {
 	private String usr;
 	Menu_ManageRq(String usr, Scanner scanner, Connection conn) {
 		this.usr = usr;
-		try {
-			mode(scanner, usr, conn);
-		} catch (SQLException e) {}
+		mode(scanner, conn);
+		
 
 	}
 	
-	private void mode (Scanner scanner, String usr, Connection conn) {
+	private void mode (Scanner scanner, Connection conn) {
 		System.out.println("Enter 'Search', 'Delete', or 'exit'");
 		String input = scanner.next().toLowerCase();
 		if (input.equals("search")) {
@@ -27,7 +30,7 @@ public class Menu_ManageRq {
 				System.out.println(e.getMessage());	
 			}
 		} else if (input.equals("delete")) {
-				delete(usr, scanner, conn);
+				delete(scanner, conn);
 		} else if (input.equals("exit")) {
 			new Menu_Main(usr, scanner, conn);
 		} else {
@@ -46,11 +49,49 @@ public class Menu_ManageRq {
 		}
 		String list[] = ListSearch(i, location, scanner, conn);
 		//message user
+		MessageUsr(scanner, conn, list);
+		mode(scanner, conn);
 	}
 	
-	private void MessageUsr() {
+	private void MessageUsr(Scanner scanner, Connection conn, String Emails[]) {
+		System.out.println("Would you like to send a message? enter yes or no.");
+		String input = scanner.next().toLowerCase();
+		if(input.equals("no")) {
+			mode(scanner, conn);
+		} else if (!input.equals("no") && !input.equals("yes")){
+			System.out.println("invalid input, please enter yes or no.");
+			MessageUsr(scanner, conn, Emails);
+		}
+		System.out.println("Please enter the email of the user you wish to message");
+		String email = scanner.next().toLowerCase();
+		for (int i = 0; i < Emails.length; i++) {
+			if (email == Emails[i]) {
+				sendMsg(email, conn, scanner);
+			}
+		}
+		System.out.println("Invalid email, please try again");
+		MessageUsr(scanner, conn, Emails);
+	}
+	
+	
+	private void sendMsg(String email, Connection conn, Scanner scanner) {
+		System.out.println("Please enter a message, pressing 'enter' will end the message");
+		String message = scanner.next();
 		
+		Calendar currenttime = Calendar.getInstance();
+	    Date sqldate = new Date((currenttime.getTime()).getTime());
 		
+		String sql = "insert into inbox(email, msgTimestamp, sender, content, rno, seen) values(?,?,?,?,?,?)";
+		try(PreparedStatement pstmt = conn.prepareStatement(sql)){
+			pstmt.setString(1, email);
+			pstmt.setDate(2, sqldate);
+			pstmt.setString(3, usr);
+			pstmt.setString(4, message);
+			pstmt.setInt(5, -1);
+			pstmt.setString(6, "n");
+		}catch (SQLException e){
+			System.out.println(e.getMessage());
+		}
 	}
 	
 	private int parseUlocation(String location, Connection conn)throws SQLException {//check if input is lcode or city
@@ -92,8 +133,9 @@ public class Menu_ManageRq {
 	
 	private String[] ListSearch(int i, String location, Scanner scanner, Connection conn) throws SQLException {
 		List<String> count = new ArrayList<>();
-		String lcodesql = "select rid, rdate, pickup, dropoff, amount from requests where pickup = ?";
-		String citysql = "select rid, rdate, pickup, dropoff, amount from requests, location where location.lcode = pickup and city = ?";
+		List<String> email = new ArrayList<>();
+		String lcodesql = "select rid, email, rdate, pickup, dropoff, amount from requests where pickup = ?";
+		String citysql = "select rid, email, rdate, pickup, dropoff, amount from requests, location where city = ?";
 		
 		if (i == 1) {
 			PreparedStatement pstmt = conn.prepareStatement(lcodesql);
@@ -105,7 +147,8 @@ public class Menu_ManageRq {
 				String pickup = rs.getString("pickup");
 				String dropoff = rs.getString("dropoff");
 				String amt = Integer.toString(rs.getInt("amount"));
-				count.add(rid + "\t" + date + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
+				count.add(rid + "\t" + rs.getString("email") + "\t" + date + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
+				email.add(rs.getString("email"));
 			}
 			
 		}else if (i == 2) {
@@ -118,13 +161,16 @@ public class Menu_ManageRq {
 					String pickup = rs.getString("pickup");
 					String dropoff = rs.getString("dropoff");
 					String amt = Integer.toString(rs.getInt("amount"));
-					count.add(rid + "\t" + date + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
+					count.add(rid + "\t" + rs.getString("email") + "\t" + date + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
+					email.add(rs.getString("email"));
 				}
 			}
 		int s = count.size();
 		String List[] = new String[s];
-		for (int j = 0; j < count.size(); j ++) {
+		String emailList[] = new String[s];
+		for (int j = 0; j < s; j ++) {
 			List[j] = count.get(j);
+			emailList[j] = email.get(j);
 		}
 		if (s >= 5) {
 			printList(List, List.length);
@@ -144,7 +190,7 @@ public class Menu_ManageRq {
 				k++;
 			}
 		}
-		return List;
+		return emailList;
 	}
 	
 	private String[] UpdateList(String list[], int mod) {
@@ -161,7 +207,7 @@ public class Menu_ManageRq {
 		}
 	}
 	
-	private void delete(String usr, Scanner scanner, Connection conn) {
+	private void delete(Scanner scanner, Connection conn) {
 		//TODO fix more edge cases
 		int ridList[] = listAll(usr, conn);
 		int rListSize = ridList.length;
@@ -173,7 +219,7 @@ public class Menu_ManageRq {
 			}
 		}
 		System.out.println("Invalid rid, please try again.");
-		delete(usr, scanner, conn);
+		delete(scanner, conn);
 
 	}
 	
@@ -216,20 +262,19 @@ public class Menu_ManageRq {
 			System.out.println(e.getMessage());	
 		}
 		if (size == 1) {
-			mode(scanner,usr,conn);
+			mode(scanner,conn);
 		}
 		System.out.println("Would you like to delete another request? enter yes or no.");
 		String del = scanner.next().toLowerCase();
-		while (!del.equals("yes") || !del.equals("no")) {
+		while (!del.equals("yes") && !del.equals("no")) {
 			System.out.println("please enter yes or no.");
 			del = scanner.next().toLowerCase();
 		}
 		if (del.equals("yes")) {
-			delete(usr, scanner, conn);
+			delete(scanner, conn);
 		} else if (del.equals("no")) {
-			mode(scanner, usr, conn);
+			mode(scanner,conn);
 		}
-		
 	}
 	
 }
