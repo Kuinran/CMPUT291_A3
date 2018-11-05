@@ -97,6 +97,7 @@ public class Menu_Search {
 	void searchDb() throws SQLException {
 		System.out.println("Searching...");
 		// query returning lcode where location matches keywords
+		// TODO: fix
 		String subQueryString = "select lcode from locations where lcode = ? or city like ? or "
 				+ "prov like ? or address like ?";
 		if (input.length > 1) {
@@ -108,22 +109,22 @@ public class Menu_Search {
 		// query returning rno where lcode matches location
 		String subQueryStringEnroute = "select rno from enroute where lcode = (" + subQueryString + ")";
 		String searchString = "select distinct * from rides r left join cars c on r.cno = c.cno"
-				+ " where src = (" + subQueryString + ") or dst = (" + subQueryString + ") or r.rno = ("
+				+ " where src in (" + subQueryString + ") or dst in (" + subQueryString + ") or r.rno in ("
 				+ subQueryStringEnroute + ")";
 		PreparedStatement search = conn.prepareStatement(searchString);
 		for (int i = 0; i < input.length; i++) {
 			search.setString(i * 12 + 1, input[i]);
-			search.setString(i * 12 + 2, "%" + input[i] + "%");
-			search.setString(i * 12 + 3, "%" + input[i] + "%");
-			search.setString(i * 12 + 4, "%" + input[i] + "%");
+			search.setString(i * 12 + 2, '%' + input[i] + '%');
+			search.setString(i * 12 + 3, '%' + input[i] + '%');
+			search.setString(i * 12 + 4, '%' + input[i] + '%');
 			search.setString(i * 12 + 5, input[i]);
-			search.setString(i * 12 + 6, "%" + input[i] + "%");
-			search.setString(i * 12 + 7, "%" + input[i] + "%");
-			search.setString(i * 12 + 8, "%" + input[i] + "%");
+			search.setString(i * 12 + 6, '%' + input[i] + '%');
+			search.setString(i * 12 + 7, '%' + input[i] + '%');
+			search.setString(i * 12 + 8, '%' + input[i] + '%');
 			search.setString(i * 12 + 9, input[i]);
-			search.setString(i * 12 + 10, "%" + input[i] + "%");
-			search.setString(i * 12 + 11, "%" + input[i] + "%");
-			search.setString(i * 12 + 12, "%" + input[i] + "%");
+			search.setString(i * 12 + 10, '%' + input[i] + '%');
+			search.setString(i * 12 + 11, '%' + input[i] + '%');
+			search.setString(i * 12 + 12, '%' + input[i] + '%');
 		}
 		rs = search.executeQuery();
 		HashMap<String, String> temp = new HashMap<String, String>();
