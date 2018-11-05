@@ -11,18 +11,17 @@ import java.util.List;
 
 public class Menu_ManageRq {
 	private String usr;
-	private enum State {MAIN, QUIT};
-	private State state;
 	Menu_ManageRq(String usr, Scanner scanner, Connection conn) {
 		this.usr = usr;
-		this.state = State.MAIN;
 		mode(scanner, conn);
 		
 
 	}
 	
 	private void mode (Scanner scanner, Connection conn) {
-		while(this.state != State.QUIT) { 
+		int i = 0;
+		while(i == 0) { 
+			//bug with search
 			System.out.println("Enter 'Search', 'Delete', or 'exit'");
 			String input = scanner.next().toLowerCase();
 			if (input.equals("search")) {
@@ -34,7 +33,8 @@ public class Menu_ManageRq {
 			} else if (input.equals("delete")) {
 				delete(scanner, conn);
 			} else if (input.equals("exit")) {
-				state = State.QUIT;
+				i = 1;
+				break;
 			} else {
 				System.out.println("Invalid input");
 				mode(scanner, conn);
