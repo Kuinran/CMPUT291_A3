@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Menu_Search {
-	private int MAX_RIDES_PER_PAGE = 5;
 	private Scanner scanner;
 	private String email;
 	private Connection conn;
@@ -95,7 +94,6 @@ public class Menu_Search {
 		this.input = keywords;
 	}
 	
-	@SuppressWarnings("unchecked")
 	void searchDb() throws SQLException {
 		System.out.println("Searching...");
 		// query returning lcode where location matches keywords
@@ -210,7 +208,7 @@ public class Menu_Search {
 		rno = scanner.nextInt();
 		System.out.println("Enter how many seats you would like to book or type <Cancel> to return");
 		seats = scanner.nextInt();
-		String msg = String.format("Hi! I would like to book %d seats on %d.", rno, seats);
+		String msg = String.format("Hi! I would like to book %d seats on %d.", seats, rno);
 		// need to query to get reciever of msg then insert new message
 		PreparedStatement findReciever = conn.prepareStatement("select distinct driver from rides "
 				+ "where rno = ?");
