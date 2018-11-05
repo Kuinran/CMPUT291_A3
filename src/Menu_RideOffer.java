@@ -103,15 +103,15 @@ public class Menu_RideOffer {
 		catch(SQLException e) {
 			System.out.println(e.getMessage());
 		}
-		}
+		System.out.println("Thank you for using our service! Your ride has been entered!");
+		System.out.println("Returning to main menu...");
+	}
 	
-	//TODO: add a case where user enters a code that is not a lcode key or a key substring found in city, prov, address(rare case)
 	public String validate_location(Scanner scanner, String usr, Connection conn, String location) {
 		List<String> lcodelist = new ArrayList<>();
 	String checklcode = "select lcode from locations where lcode = ?";
-	String finds = String.format("select * from locations where (city LIKE '%%%s%%') OR (prov LIKE '%%%s%%') OR (address LIKE '%%%s%%')",
-			location, location, location);
-
+	String finds = "select * from locations where (city LIKE ?) OR (prov LIKE ?) OR (address LIKE ?)";
+	String nums = "select count(lcode) from locations where (city LIKE ?) OR (prov LIKE ?) OR (address LIKE ?)";
 	//These string are just for testing. Remove later
 	//String s1 = "insert into locations values ('ab4','Calgary','Alberta','111 Edmonton Tr');";
 	//String s2 = "insert into locations values ('ab5','Calgary','Alberta','Airport');";
@@ -120,36 +120,61 @@ public class Menu_RideOffer {
 	try{
 		PreparedStatement st1 = conn.prepareStatement(checklcode);
 		st1.setString(1,location);
-		Statement stmt = conn.createStatement();
+		PreparedStatement pstmt = conn.prepareStatement(finds);
+		pstmt.setString(1, "%" + location + "%");
+		pstmt.setString(2, "%" + location + "%");
+		pstmt.setString(3, "%" + location + "%");
+		PreparedStatement numsub = conn.prepareStatement(nums);
+		numsub.setString(1, "%" + location + "%");
+		numsub.setString(2, "%" + location + "%");
+		numsub.setString(3, "%" + location + "%");
 		ResultSet rs1 = st1.executeQuery();
+		ResultSet rs2 = pstmt.executeQuery();
+		ResultSet rs3 = numsub.executeQuery();
+		rs3.next();
 		if(rs1.next()){
 			System.out.println("Correct code");
 			return location; //this means that indeed a correct lcode was inputted
 		}
+		int numbersubs = rs3.getInt(1);
+		System.out.println("Number of options: " + numbersubs);
+		if (numbersubs == 0) {
+			return "failed";
+		}
+		String selectlcode;
+		
 		System.out.println("incorrect code. Did you meen to select from");
-		ResultSet rs2 = stmt.executeQuery(finds);
 		int counter = 1;
+		while(true) {
 		while(rs2.next()) {
 		System.out.println(counter + "- " + rs2.getString(1) + " " + rs2.getString(2) + " " + rs2.getString(3) + " " + rs2.getString(4));
 		lcodelist.add(rs2.getString(1));
 		if (counter % 5 == 0) {
-			System.out.println("press number to select a location, or press 0 to see more");
-			String a = scanner.next();
-			int answer = Integer.parseInt(a);
-			if(answer == 0) {
+			counter ++;
+			break;
+		}	
+	counter++;
+		}
+		if(counter - 1 < numbersubs) {
+			System.out.println("Select a location(press the corresponding number) or press 0 for more options");
+			String repons = scanner.next();
+			int numrespons = Integer.parseInt(repons);
+			if (numrespons == 0) {
 				continue;
 			}
-			else {
-				return lcodelist.get(answer-1);
-			}
+			selectlcode = lcodelist.get(numrespons-1);
+			break;
 		}
-		counter++;
+		else if (counter-1>=numbersubs) {
+			System.out.println("Select a location(press the corresponding number)");
+			String repons = scanner.next();
+			int numrespons = Integer.parseInt(repons);
+			selectlcode = lcodelist.get(numrespons-1);
+			break;
 		}
-		System.out.println("press number to select a location");
-		String a = scanner.next();
-		int answer = Integer.parseInt(a);
-		String f = lcodelist.get(answer-1);
-		return f;
+		}
+		System.out.println("You selected: " + selectlcode);
+		return selectlcode;
 	}
 	catch(SQLException e) {
 		System.out.println(e.getMessage());
