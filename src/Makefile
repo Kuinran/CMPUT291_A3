@@ -6,14 +6,13 @@ JC = javac
 	$(JC) $(JFLAGS) $*.java
         
 CLASSES = \
-        Helpers.java \
+        Main_States.java \
         JDBC_Connection.java \
         Menu_Book.java \
         Menu_Main.java \
         Menu_ManageRq.java \
         Menu_PostRq.java \
         Menu_RideOffer.java \
-        Menu_Search.java \
         Menu_Search.java \
         Menu_Login.java \
         Main.java

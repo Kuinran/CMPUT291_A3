@@ -8,16 +8,19 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Menu_Search {
+	// initialize variables that all functions use
+	private int MAX_RIDES_PER_PAGE = 5;
 	private Scanner scanner;
 	private String email;
 	private Connection conn;
+	// enums for FSM
 	private enum State {MAIN, SEARCH, PRINT, SUB, MSG, QUIT};
 	private State state;
 	private String[] input;
 	private List<HashMap<String, String>> result; 
-	private ResultSet rs;
 	private int pageNumber;
 	
+	// Constructor fills out initial data and sets state to MAIN
 	Menu_Search(String email, Scanner scanner, Connection conn) {
 		this.email = email;
 		this.scanner = scanner.reset();
@@ -27,13 +30,18 @@ public class Menu_Search {
 		this.pageNumber = 0;
 	}
 	
+	// Runtime loop
 	void run() {
+		// clear the scanner buffer by jumping to a new line
 		scanner.nextLine();
-		while (this.state != State.QUIT) { // set condition to if quit state quit loop
+		// until the state is QUIT run this class
+		while (this.state != State.QUIT) {
 			// System.out.println("State: " + state);
 			if (this.state == State.MAIN) {
+				// get input and then set state to SEARCH
 				keywordPrompt();
 			} else if (this.state == State.SEARCH) {
+				// try to find results
 				try {
 					searchDb();
 					if (!result.isEmpty()) {
@@ -51,6 +59,7 @@ public class Menu_Search {
 					continue;
 				}
 			} else if (this.state == State.PRINT) {
+				// print 5 results, page number will note which sets of data you should see
 				try {
 					printPage();
 				} catch (Exception e) {
@@ -60,8 +69,10 @@ public class Menu_Search {
 					continue;
 				}
 			} else if (this.state == State.SUB) {
+				// if printing is successful get user input for next part
 				resultPrompt();
 			} else if (this.state == State.MSG) {
+				// send a message
 				try {
 					msgPrompt();
 				} catch (SQLException e) {
@@ -79,21 +90,27 @@ public class Menu_Search {
 		String[] keywords;
 		// while input in not empty form a query looking for lcodes with matching conditions
 		while (true) {
-		keywords = scanner.nextLine().toLowerCase().split(" ");
+			// case insensitive and split search terms by space
+			keywords = scanner.nextLine().toLowerCase().split(" ");
+			// if user wants to quit change state and exit function
 			if (keywords[0].equals("quit")) {
 				state = State.QUIT;
 				break;
 			}
+			// if the input is 0 length or is more than 3 keywords prompt usr to try again
 			if (keywords.length > 3 && keywords.length < 0) {
 				System.out.println("Invalid number of keywords");
 			} else {
+				// successful entry, try searching for the keywords
 				state = State.SEARCH;
 				break;
 			}
 		}
+		// save keywords in an array once validated
 		this.input = keywords;
 	}
 	
+	// searches a database and stores the results in a array of hashmaps with keys = columns
 	void searchDb() throws SQLException {
 		System.out.println("Searching...");
 		// query returning lcode where location matches keywords
@@ -101,19 +118,24 @@ public class Menu_Search {
 				+ "prov like ? or address like ?)";
 		// query returning rno where lcode matches location
 		String subQueryStringEnroute = "select rno from enroute where lcode in (" + subQueryString + ")";
+		// query built from subQueries that find rides with lcodes that satisfy one of the fields in
+		// locations
 		String searchString = "select distinct * from rides r left join cars c on r.cno = c.cno"
-				+ " where (src in (" + subQueryString + ") or dst in (" + subQueryString + ") or r.rno in ("
-				+ subQueryStringEnroute + "))";
+				+ " where (src in (" + subQueryString + ") or dst in (" + subQueryString + 
+				") or r.rno in ("+ subQueryStringEnroute + "))";
+		// if there is another keyword narrow search by concat
 		if (input.length > 1) {
 			searchString += " and (src in ("+ subQueryString + ") or dst in (" + subQueryString
 					+ ") or r.rno in ("+ subQueryStringEnroute + "))";
 		}
+		// if there is another keyword narrow search by concat
 		if (input.length > 2) {
 			searchString += " and (src in ("+ subQueryString + ") or dst in (" + subQueryString
 					+ ") or r.rno in ("+ subQueryStringEnroute + "))";
 		}
 		// System.out.println(searchString);
 		PreparedStatement search = conn.prepareStatement(searchString);
+		// populate statement using for loop, each input is inserted 12 times
 		for (int i = 0; i < input.length; i++) {
 			search.setString(i * 12 + 1, input[i]);
 			search.setString(i * 12 + 2, '%' + input[i] + '%');
@@ -128,9 +150,12 @@ public class Menu_Search {
 			search.setString(i * 12 + 11, '%' + input[i] + '%');
 			search.setString(i * 12 + 12, '%' + input[i] + '%');
 		}
-		rs = search.executeQuery();
+		ResultSet rs = search.executeQuery();
+		// set hashmap which will be inserted to array
 		HashMap<String, String> temp = new HashMap<String, String>();
+		// clear result prior to populating
 		result = new ArrayList<HashMap<String, String>>();
+		// fill result will all returned result sets
 		while (rs.next()) {
 			temp = new HashMap<String, String>();
 			temp.put("rno", Integer.toString(rs.getInt("rno")));
@@ -149,11 +174,14 @@ public class Menu_Search {
 			result.add(temp);
 		}
 	}
-	
-	void printPage() { // prints 5 rides at once
-		int i = pageNumber * 5;
+	// prints results at number dictated by MAX_RIDES_PER_PAGE
+	void printPage() {
+		// set starting index
+		int i = pageNumber * MAX_RIDES_PER_PAGE;
+		// print header
 		System.out.println(String.format("Rno|Price|Date$-15s|Seats|Luggage Description|Src  |Dest |"
 				+ "Driver$-16s|Cno|Make$-13s|Model$-13s|Year|Owner$-16s"));
+		// print results until there are no more results or page limit is reached
 		while (i < result.size()) {
 			String str = "%s$-3s|%s$-5s|%s$-15s|%s$-5s|%s$-19s|%s$-5s|%s$-5s|%s$-16s|%s$-3s|%s$-13s|"
 					+ "%s$-13s|%s$-4s|%s$-16s";
@@ -163,15 +191,19 @@ public class Menu_Search {
 					result.get(i).get("cno"), result.get(i).get("make"), result.get(i).get("model"),
 					result.get(i).get("year"), result.get(i).get("owner"));
 			System.out.println(str);
-			if (i % 5 == 4) {
+			// if page limit is reached break from loop
+			if (i % MAX_RIDES_PER_PAGE == MAX_RIDES_PER_PAGE - 1) {
 				break;
 			}
 			i++;
 		}
+		// change state to sub if successful
 		state = State.SUB;
 	}
 	
+	// prints submenu after results have been found
 	void resultPrompt() {
+		// print prompt
 		System.out.println("<Prev> Previous Page | <Next> Next Page | <Quit> Return to Main Menu | "
 				+ "<New> New Search | <Msg> Send a Request to Join Ride");
 		switch (scanner.next().toLowerCase()) {
@@ -180,37 +212,46 @@ public class Menu_Search {
 				System.out.println("There is no previous page");
 				break;
 			} else {
+				// more page back if possible
 				System.out.println(pageNumber);
 				pageNumber--;
 				pageNumber--;
 				state = State.PRINT;
 			}
 		case "next":
+			// increment page number
 			pageNumber++;
 			state = State.PRINT;
 			break;
 		case "quit":
+			// change state and break
 			pageNumber = 0;
 			state = State.QUIT;
 			break;
 		case "new":
+			// change state back to start
 			pageNumber = 0;
 			state = State.MAIN;
 			scanner.nextLine();
 			break;
 		case "msg":
+			// msg state
 			state = State.MSG;
 			break;
 		}
 	}
 	
+	// gets the rno and # of seats then sends a msg 
 	void msgPrompt() throws SQLException {
 		int rno;
 		int seats;
+		// get rno
 		System.out.println("Enter the Rno of the ride or type <Cancel> to return");
 		rno = scanner.nextInt();
+		// get seats
 		System.out.println("Enter how many seats you would like to book or type <Cancel> to return");
 		seats = scanner.nextInt();
+		// format msg
 		String msg = String.format("Hi! I would like to book %d seats on %d.", seats, rno);
 		// need to query to get reciever of msg then insert new message
 		PreparedStatement findReciever = conn.prepareStatement("select distinct driver from rides "
@@ -218,7 +259,9 @@ public class Menu_Search {
 		findReciever.setInt(1, rno);
 		ResultSet driver = findReciever.executeQuery();
 		String reciever = driver.getString("driver");
+		// send msg
 		JDBC_Connection.sendMsg(email, reciever, msg, rno, conn);
+		// new prompt
 		System.out.println("Would you like to <New> make a new search or <Quit> return to the main menu?");
 		switch(scanner.next().toLowerCase()) {
 		case "new":
