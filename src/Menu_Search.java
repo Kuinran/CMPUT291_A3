@@ -179,12 +179,12 @@ public class Menu_Search {
 		// set starting index
 		int i = pageNumber * MAX_RIDES_PER_PAGE;
 		// print header
-		System.out.println(String.format("Rno|Price|Date$-15s|Seats|Luggage Description|Src  |Dest |"
-				+ "Driver$-16s|Cno|Make$-13s|Model$-13s|Year|Owner$-16s"));
+		System.out.println(String.format("Rno|Price|%1$-10s|Seats|Luggage Description|Src  |Dest |"
+				+ "%2$-20s|Cno|%3$-13s|%4$-13s|Year|%5$-16s", "Date", "Driver", "Make", "Model", "Owner"));
 		// print results until there are no more results or page limit is reached
 		while (i < result.size()) {
-			String str = "%s$-3s|%s$-5s|%s$-15s|%s$-5s|%s$-19s|%s$-5s|%s$-5s|%s$-16s|%s$-3s|%s$-13s|"
-					+ "%s$-13s|%s$-4s|%s$-16s";
+			String str = "%1$-3s|%2$-5s|%3$-10s|%4$-5s|%5$-19s|%6$-5s|%7$-5s|%8$-20s|%9$-3s|%10$-13s|"
+					+ "%11$-13s|%12$-4s|%13$-16s";
 			str = String.format(str, result.get(i).get("rno"), result.get(i).get("price"), 
 					result.get(i).get("rdate"),	result.get(i).get("seats"), result.get(i).get("lugDesc"), 
 					result.get(i).get("src"), result.get(i).get("dst"), result.get(i).get("driver"), 
@@ -197,6 +197,7 @@ public class Menu_Search {
 			}
 			i++;
 		}
+		System.out.println();
 		// change state to sub if successful
 		state = State.SUB;
 	}
