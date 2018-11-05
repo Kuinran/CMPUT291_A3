@@ -150,7 +150,7 @@ private String usr;
 				" and a email was sent to the booked member. Returning to select screen");
 		
 		//TODO Verify the email sending works. PLEASE VERIFY!!!!!!!!!!!!!!!!!!!
-		//JDBC_Connection.sendMsg(usr, email, "Hello, you have been booked on a ride. If you have any concerns contact " + usr , selectrno, conn);
+		JDBC_Connection.sendMsg(usr, email, "Hello, you have been booked on a ride. If you have any concerns contact " + usr , selectrno, conn);
 		}
 		catch(SQLException e) {
 			System.out.println(e.getMessage());
