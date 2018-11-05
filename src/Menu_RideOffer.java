@@ -11,7 +11,7 @@ import java.sql.ResultSet;
 
 
 public class Menu_RideOffer {
-//lots of the code is similar to post ride request so credits to jarrett >.<
+	
 	private String usr;
 	
 	public Menu_RideOffer(String usr, Scanner scanner, Connection conn) {
@@ -19,6 +19,7 @@ public class Menu_RideOffer {
 		RideOffer(scanner,usr,conn);
 	}
 	private void RideOffer(Scanner scanner, String usr, Connection conn){
+		//Getting all the inputs
 		System.out.println("Enter date (YYYY-MM-DD):\n");
 		String rdate = scanner.next();
 		System.out.println("Enter number of seats:\n");
@@ -29,6 +30,8 @@ public class Menu_RideOffer {
 		int price = Integer.parseInt(p);
 		System.out.println("Enter Luggage Description:\n");  //eg: small bag
 		String lugDesc = scanner.next();
+		
+		//Keep looping till the user selects a valid lcode
 		String src;
 		while(true) {
 		System.out.println("Enter src location code:\n");
@@ -40,6 +43,8 @@ public class Menu_RideOffer {
 		}
 		System.out.println("invalid input try again");
 		}
+		
+		//Keep looping till the user selects a valid lcode
 		String dst;
 		while(true) {
 		System.out.println("Enter dst location code:\n");
@@ -52,6 +57,7 @@ public class Menu_RideOffer {
 			System.out.println("invalid input try again");
 		}
 		
+		//rno is a unique number specific to a ride
 		int rno = GenRNO(conn);
 		System.out.println("The rno is: " + rno);
 		enrouteprocess(usr,scanner,conn,rno);
@@ -73,6 +79,7 @@ public class Menu_RideOffer {
 		
 		try {
 			//rides(rno, price, rdate, seats, lugDesc, src, dst, driver, cno)
+			//depending on the user response to the cno, we will insert the ride
 			String finalsql = "insert into rides values (?,?,?,?,?,?,?,?,?)";
 			PreparedStatement pstate = conn.prepareStatement(finalsql);
 			if(respons == 1) {
@@ -112,10 +119,6 @@ public class Menu_RideOffer {
 	String checklcode = "select lcode from locations where lcode = ?";
 	String finds = "select * from locations where (city LIKE ?) OR (prov LIKE ?) OR (address LIKE ?)";
 	String nums = "select count(lcode) from locations where (city LIKE ?) OR (prov LIKE ?) OR (address LIKE ?)";
-	//These string are just for testing. Remove later
-	//String s1 = "insert into locations values ('ab4','Calgary','Alberta','111 Edmonton Tr');";
-	//String s2 = "insert into locations values ('ab5','Calgary','Alberta','Airport');";
-	//String s3 = "insert into locations values ('ab6','Red Deer','Alberta','City Hall');";
 	
 	try{
 		PreparedStatement st1 = conn.prepareStatement(checklcode);
@@ -162,14 +165,25 @@ public class Menu_RideOffer {
 			if (numrespons == 0) {
 				continue;
 			}
-			selectlcode = lcodelist.get(numrespons-1);
+			try {
+			selectlcode = lcodelist.get(numrespons-1);}
+			catch(Exception e) {
+				System.out.println("Bad input");
+				return"failed";
+			}
 			break;
 		}
 		else if (counter-1>=numbersubs) {
 			System.out.println("Select a location(press the corresponding number)");
 			String repons = scanner.next();
 			int numrespons = Integer.parseInt(repons);
+			try {
 			selectlcode = lcodelist.get(numrespons-1);
+			}
+			catch(Exception e) {
+				System.out.println("Bad input");
+				return"failed";
+			}
 			break;
 		}
 		}
