@@ -2,6 +2,9 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.Scanner;
+
+import Menu_Search.State;
+
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -13,29 +16,34 @@ import java.util.List;
 
 public class Menu_ManageRq {
 	private String usr;
+	private enum State {MAIN, SEARCH, PRINT, SUB, MSG, QUIT};
+	private State state;
 	Menu_ManageRq(String usr, Scanner scanner, Connection conn) {
 		this.usr = usr;
+		this.state = State.MAIN;
 		mode(scanner, conn);
 		
 
 	}
 	
 	private void mode (Scanner scanner, Connection conn) {
-		System.out.println("Enter 'Search', 'Delete', or 'exit'");
-		String input = scanner.next().toLowerCase();
-		if (input.equals("search")) {
-			try{
-				search(scanner, conn);
-			}  catch (SQLException e) {
-				System.out.println(e.getMessage());	
-			}
-		} else if (input.equals("delete")) {
+		while(this.state != State.QUIT) { 
+			System.out.println("Enter 'Search', 'Delete', or 'exit'");
+			String input = scanner.next().toLowerCase();
+			if (input.equals("search")) {
+				try{
+					search(scanner, conn);
+				}  catch (SQLException e) {
+					System.out.println(e.getMessage());	
+				}
+			} else if (input.equals("delete")) {
 				delete(scanner, conn);
-		} else if (input.equals("exit")) {
-			new Menu_Main(usr, scanner, conn);
-		} else {
-			System.out.println("Invalid input");
-			new Menu_ManageRq(usr, scanner, conn);
+			} else if (input.equals("exit")) {
+				new Menu_Main(usr, scanner, conn);
+			} else {
+				System.out.println("Invalid input");
+				new Menu_ManageRq(usr, scanner, conn);
+			}
 		}
 	}
 	
@@ -144,11 +152,12 @@ public class Menu_ManageRq {
 			while(rs.next()) {
 				String rid = Integer.toString(rs.getInt("rid"));
 				String date = rs.getString("rdate");
+				String Email = rs.getString("email");
 				String pickup = rs.getString("pickup");
 				String dropoff = rs.getString("dropoff");
 				String amt = Integer.toString(rs.getInt("amount"));
-				count.add(rid + "\t" + rs.getString("email") + "\t" + date + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
-				email.add(rs.getString("email"));
+				count.add(rid + "\t" + Email + "\t" + date + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
+				email.add(Email);
 			}
 			
 		}else if (i == 2) {
@@ -175,15 +184,15 @@ public class Menu_ManageRq {
 		if (s >= 5) {
 			printList(List, List.length);
 		}else {
-			String all[][] = new String[s%5][];
-			for (int j = 0; j < s%5; j++) {
+			String all[][] = new String[s/5][];
+			for (int j = 0; j < s/5; j++) {
 				all[j] = UpdateList(List, j);
 			}
 			printList(all[0], 5);
 			int k = 1;
 			System.out.println("Please input 'n' for next page or anything else to continue.");
 			String input = scanner.next().toLowerCase();
-			while (input.equals("n") && k < s%5) {
+			while (input.equals("n") && k < s/5) {
 				printList(all[k], all[k].length);
 				System.out.println("Please type n for next page or anything else to continue.");
 				input = scanner.next().toLowerCase();
@@ -195,7 +204,8 @@ public class Menu_ManageRq {
 	
 	private String[] UpdateList(String list[], int mod) {
 		String newString[] = new String[5];
-		for (int i = mod; i < mod + 5; i ++) {
+		mod = mod*5;
+		for (int i = mod; i < mod + 5; i++) {
 			newString[i] = list[i];
 		}
 		return newString;
