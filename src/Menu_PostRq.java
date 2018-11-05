@@ -5,10 +5,8 @@ import java.util.Scanner;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-//import java.text.DateFormat;
-//import java.text.SimpleDateFormat;
+import java.text.ParseException;
 import java.sql.ResultSet;
-//probably need to import more shit >.<
 
 
 public class Menu_PostRq{
@@ -16,25 +14,29 @@ public class Menu_PostRq{
 
 		Menu_PostRq(String usr, Scanner scanner, Connection conn) {
 			this.usr = usr;
-			post_rq(scanner, conn);
+			try {
+				post_rq(scanner, conn);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
 		}
 		
-		private void post_rq (Scanner scanner, Connection conn){
+		private void post_rq (Scanner scanner, Connection conn) throws ParseException{
 			//ask for user inputs
 			System.out.println("date (YYYY-MM-DD)\n");
-			String date = scanner.next();
+			String datein = scanner.next();
 			System.out.println("pickup location code\n");
 			String pickup = scanner.next();
 			System.out.println("dropoff location code\n");
 			String dropoff = scanner.next();
 			System.out.println("price\n");
 			String p = scanner.next();
-			int price = Integer.parseInt(p);
 			
-			Insert(date, pickup, dropoff, price, conn);//insert function
+			int price = Integer.parseInt(p);
+			Insert(datein, pickup, dropoff, price, conn);//insert function
 		}
 		
-		private void Insert (String date, String pickup, String dropoff, int price, Connection conn)	{
+		private void Insert (String date, String pickup, String dropoff, int price, Connection conn) 	{
 			//TODO check date format, and change pickup and dropoff to location codes			
 			
 			String sql = "INSERT INTO requests(rid, email, rdate, pickup, dropoff, amount) VALUES(?,?,?,?,?,?)";//init query
@@ -42,7 +44,8 @@ public class Menu_PostRq{
 			try (PreparedStatement pstmt = conn.prepareStatement(sql)){//init prepared statement; prevents injection
 				pstmt.setInt(1, rid);//set rid
 				pstmt.setString(2, usr);//set user email
-				pstmt.setDate(3, java.sql.Date.valueOf(date));//set date
+
+				pstmt.setString(3, date);//set date, cast to java.sql.date because java
 				pstmt.setString(4, pickup);//set pickup lcode
 				pstmt.setString(5, dropoff);//set dropoff lcode
 				pstmt.setInt(6, price);// set price

@@ -2,9 +2,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.Scanner;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class Menu_ManageRq {
@@ -100,7 +100,11 @@ public class Menu_ManageRq {
 				state = State.SEARCH;
 				break;
 			}
+			try {
 			this.ListEmail = ListSearch(i, location);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			msgPrompt();//ask user to send message
 		}
 	}
@@ -119,6 +123,7 @@ public class Menu_ManageRq {
 			for (int i = 0; i < ListEmail.length; i++) {//check if email is valid
 				if (email.equals(ListEmail[i])) {
 					this.EmailIn = email;
+					break;
 				}
 			}
 			if(email.equals(EmailIn)) {
@@ -136,10 +141,11 @@ public class Menu_ManageRq {
 	
 	
 	private void sendMsg() {//send the message
-		System.out.println("Please enter a message, pressing 'enter' will end the message");
-		String message = scanner.next();
+		System.out.println("Please enter a message, please start message with one <space> character, pressing 'enter' will end the message");
+		scanner.next();
+		String message = scanner.nextLine();
 		JDBC_Connection.sendMsg(Uemail, EmailIn, message, -1, conn);//message function in JDBC_Connection
-		
+		state = State.MAIN;
 	}
 	
 	private int parseUlocation(String location)throws SQLException {//check if input is lcode or city
@@ -162,12 +168,12 @@ public class Menu_ManageRq {
 			
 	}
 	
-	private String[] ListSearch(int i, String location) throws SQLException {
+	private String[] ListSearch(int i, String location) throws SQLException, ParseException{
 		//TODO fix time bug
 		List<String> count = new ArrayList<>();//used to count number of lines
 		List<String> email = new ArrayList<>();//array of returned emails
 		String lcodesql = "select rid, email, rdate, pickup, dropoff, amount from requests where pickup = ?";//init sql query
-		String citysql = "select rid, email, rdate, pickup, dropoff, amount from requests, locations where city = ?";
+		String citysql = "select rid, email, rdate, pickup, dropoff, amount from requests, locations where locations.city = ? and locations.lcode = pickup";
 		
 		if (i == 1) {//if user entered lcode
 			PreparedStatement pstmt = conn.prepareStatement(lcodesql);//prepared statement init
@@ -175,7 +181,7 @@ public class Menu_ManageRq {
 			ResultSet rs = pstmt.executeQuery();
 			while(rs.next()) {//while there are things in result set
 				String rid = Integer.toString(rs.getInt("rid"));
-				Date date = rs.getDate("rdate");
+				String date = rs.getString("rdate");
 				String Email = rs.getString("email");
 				String pickup = rs.getString("pickup");
 				String dropoff = rs.getString("dropoff");
@@ -190,12 +196,12 @@ public class Menu_ManageRq {
 				ResultSet rs = pstmt.executeQuery();
 				while(rs.next()) {
 					String rid = Integer.toString(rs.getInt("rid"));
-					Date date = rs.getDate("rdate");
+					String date = rs.getString("rdate");
 					String Email = rs.getString("email");
 					String pickup = rs.getString("pickup");
 					String dropoff = rs.getString("dropoff");
 					String amt = Integer.toString(rs.getInt("amount"));
-					count.add(rid + "\t" + Email + "\t" + date.toString() + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
+					count.add(rid + "\t" + Email + "\t" + date + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
 					email.add(Email.toLowerCase());
 				}
 			}
@@ -210,16 +216,27 @@ public class Menu_ManageRq {
 		if (s <= 5) {
 			printList(List, List.length);
 		}else {
-			String all[][] = new String[s/5][];
-			for (int j = 0; j < s/5; j++) {
-				all[j] = UpdateList(List, j);
+			String all[][] = new String[s/5 + 1][];
+			int x = 5;
+			int n = List.length;
+			for (int j = 0; j <= s/5; j++) {
+				all[j] = UpdateList(List, j, x);
+				n = n-5;
+				if(n/5 > 0) {
+					x = 5;
+				}else if(n/5 == 0){
+					x = n%5;
+					}
 			}
 			printList(all[0], 5);//print first page
 			int k = 1;
 			System.out.println("Please input 'n' for next page or anything else to continue.");
 			String input = scanner.next().toLowerCase();
-			while (input.equals("n") && k < s/5) {//print next page
+			while (input.equals("n")) {//print next page
 				printList(all[k], all[k].length);
+				if(k >= s/5) {
+					break;
+				}
 				System.out.println("Please type n for next page or anything else to continue.");
 				input = scanner.next().toLowerCase();
 				k++;
@@ -228,16 +245,20 @@ public class Menu_ManageRq {
 		return emailList;
 	}
 	
-	private String[] UpdateList(String list[], int mod) {//edit list if more than 5 rows, store in 2D array
+	private String[] UpdateList(String list[], int mod, int l) {//edit list if more than 5 rows, store in 2D array
 		String newString[] = new String[5];
 		mod = mod*5;
-		for (int i = mod; i < mod + 5; i++) {
-			newString[i] = list[i];
+		int j = 0;
+		for (int i = mod; i < mod + l; i++) {
+			
+			newString[j] = list[i];
+			j++;
 		}
 		return newString;
 	}
 	
 	private void printList(String list[], int l) {//print list
+		System.out.println("ID" + "\t" + "email" + "\t\t" + "date" + "\t" + "pickup lcode" + "\t" + "dropoff lcode" + "\t" + "amount");
 		for (int i = 0; i < l; i++) {
 			System.out.println(list[i]);
 		}
@@ -246,6 +267,11 @@ public class Menu_ManageRq {
 	private void delete() throws SQLException {//delete function
 		int ridList[] = listAll();//list all requests
 		this.size = ridList.length;//size of all requests
+		if(size == 0) {
+			System.out.println("none");
+			state = State.MAIN;
+			return;
+		}
 		System.out.println("Select one ID of request you wish to delete, or exit to return");
 		String input = scanner.next().toLowerCase();
 		
@@ -258,6 +284,7 @@ public class Menu_ManageRq {
 			for (int i = 0; i < ridList.length; i++) {//find rid to delete
 				if (ID == ridList[i]) {
 					this.id = ID;
+					break;
 				}
 			}
 			if (id == ID) {
@@ -279,7 +306,7 @@ public class Menu_ManageRq {
 			while(rs.next()) {//while there are results
 				count.add(rs.getInt("rid"));//make a list of rid
 				System.out.println(rs.getInt("rid") + "\t" +
-								rs.getDate("rdate") + "\t" +
+								rs.getString("rdate") + "\t" +
 								rs.getString("pickup") + "\t" +
 								rs.getString("dropoff") + "\t" +
 								rs.getInt("amount"));	
@@ -302,7 +329,8 @@ public class Menu_ManageRq {
 			pstmt.executeUpdate();
 			
 		if (size == 1) {
-			mode();
+			state = State.MAIN;
+			return;
 		}
 		System.out.println("Would you like to delete another request? enter yes or no.");
 		
