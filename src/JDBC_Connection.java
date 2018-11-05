@@ -40,7 +40,7 @@ public class JDBC_Connection { // class for connecting and reusable functions in
 		
 		try (PreparedStatement pstmt = conn.prepareStatement(sql);){
 			pstmt.setString(1, reciever);
-			pstmt.setTimestamp(2, timestamp);
+			pstmt.setString(2, timestamp.toString());
 			pstmt.setString(3, sender);
 			pstmt.setString(4, msg);
 			pstmt.setInt(5, rno);
@@ -71,8 +71,8 @@ public class JDBC_Connection { // class for connecting and reusable functions in
 				System.out.println(String.format("From: %s\n[%s] Ride: %d \n%s\n-------\n", sender, time, rno, content));
 			}
 			//TODO: Uncomment when doing demo
-			//sql = "update inbox set seen = 'y' where seen = 'n';";
-			//stmt.execute(sql);
+			sql = "update inbox set seen = 'y' where seen = 'n';";
+			stmt.execute(sql);
 		} catch (Exception e) {
 			System.out.println("Connection to server failed");
 			e.printStackTrace();

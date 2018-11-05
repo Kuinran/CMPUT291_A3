@@ -8,13 +8,13 @@ public class Menu_Main {
 	Menu_Main (String usr, Scanner scanner, Connection conn) {
 		Main.mainState = Main_States.MAIN;
 		this.usr = usr;
-		JDBC_Connection.getMsg(usr, conn);
 		state = State.ACTIVE;
 		processOptions(scanner, conn);
 	}
 	
 	private void processOptions(Scanner scanner, Connection conn) {
 		while (state == State.ACTIVE) {
+			JDBC_Connection.getMsg(usr, conn);
 			System.out.println("Main Menu - Type the number next to the service wanted\n");
 			System.out.println("1|Offer a ride\n2|Search for rides\n3|Manage bookings");
 			System.out.println("4|Post a ride request\n5|Manage existing requests\n6|Logout");
