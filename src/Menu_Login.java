@@ -37,7 +37,7 @@ public class Menu_Login {
 		System.out.print("Password: ");
 		try { // if using cmd line can use console to hide password TODO: test this in console
 			cnsl = System.console();
-			password = cnsl.readPassword().toString();
+			password = new String(cnsl.readPassword());
 		} catch (Exception e) {
 			password = scanner.next().toLowerCase();
 		}
