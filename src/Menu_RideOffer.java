@@ -29,14 +29,29 @@ public class Menu_RideOffer {
 		int price = Integer.parseInt(p);
 		System.out.println("Enter Luggage Description:\n");  //eg: small bag
 		String lugDesc = scanner.next();
+		String src;
+		while(true) {
 		System.out.println("Enter src location code:\n");
 		String uplocation = scanner.next();
-		String src = validate_location(scanner,usr,conn,uplocation);
+		src = validate_location(scanner,usr,conn,uplocation);
 		System.out.println(src);
+		if(src != "failed") {
+			break;
+		}
+		System.out.println("invalid input try again");
+		}
+		String dst;
+		while(true) {
 		System.out.println("Enter dst location code:\n");
 		String offlocation = scanner.next();
-		String dst = validate_location(scanner,usr,conn,offlocation);
+		dst = validate_location(scanner,usr,conn,offlocation);
 		System.out.println(dst);
+		if(dst !="failed") {
+			break;
+		}
+			System.out.println("invalid input try again");
+		}
+		
 		int rno = GenRNO(conn);
 		System.out.println("The rno is: " + rno);
 		enrouteprocess(usr,scanner,conn,rno);
@@ -45,24 +60,45 @@ public class Menu_RideOffer {
 		int respons = Integer.parseInt(a);
 		int cno = 0;
 		if(respons==1) {
-			System.out.println("enter your cno:");
+			System.out.println("usr: " + usr + "\nenter your cno: ");
 			while(true) {
-			cno = Integer.parseInt(scanner.next());
-			cno = validate_cno(scanner,usr,conn,cno);
-			if (cno!=-1) {break;}
+			String val = scanner.next();
+			int test = Integer.parseInt(val);
+			cno = validate_cno(scanner,usr,conn,test);
+			if (cno!=-1) {
+				break;
+				}
 			}	
 		}
 		
-		//String finalsql = String.format("insert into rides values(%d, %d, %s, %d, %s, %s, %s, %s, %s, %d)", 
-				//rno,price,rdate,seats,lugDesc,src,dst,usr,cno);
 		try {
-			String finalsql = "insert into cars values (1,'Nissan','path',2006,4,'m@gmail.com')";
-			PreparedStatement statement = conn.prepareStatement(finalsql);
-		statement.executeUpdate();
-			
-			//Connection conn2 = JDBC_Connection.connect();
-			//Statement statement = conn2.createStatement();
-			//statement.executeUpdate("insert into cars values (1,'Nissan','path',2006,4,'m@gmail.com')");
+			//rides(rno, price, rdate, seats, lugDesc, src, dst, driver, cno)
+			String finalsql = "insert into rides values (?,?,?,?,?,?,?,?,?)";
+			PreparedStatement pstate = conn.prepareStatement(finalsql);
+			if(respons == 1) {
+			pstate.setInt(1,rno);
+			pstate.setInt(2, price);
+			pstate.setString(3,rdate);
+			pstate.setInt(4, seats);
+			pstate.setString(5, lugDesc);
+			pstate.setString(6, src);
+			pstate.setString(7, dst);
+			pstate.setString(8,usr);
+			pstate.setInt(9, cno);
+			pstate.executeUpdate();
+			}
+			else {
+				pstate.setInt(1,rno);
+				pstate.setInt(2, price);
+				pstate.setString(3,rdate);
+				pstate.setInt(4, seats);
+				pstate.setString(5, lugDesc);
+				pstate.setString(6, src);
+				pstate.setString(7, dst);
+				pstate.setString(8,usr);
+				pstate.setNull(9, '\0');
+				pstate.executeUpdate();	
+			}
 		}
 		catch(SQLException e) {
 			System.out.println(e.getMessage());
@@ -118,15 +154,19 @@ public class Menu_RideOffer {
 	catch(SQLException e) {
 		System.out.println(e.getMessage());
 	}
-	return "failed";
+	return "failed"; //this is returned if user entered neither a valid substring or a valid lcode
 	}
 	
 	public int validate_cno(Scanner scanner, String usr, Connection conn, int cno) {
-		String sql = String.format("select cno from cars, members where members.email = cars.owner and cars.cno = %d",cno);
+		
+		String sql = "select cno from cars, members where ? = cars.owner and cars.cno = ?";
 		try{
-			Statement stmt = conn.createStatement();
-			ResultSet rs1 = stmt.executeQuery(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			stmt.setString(1, usr);
+			stmt.setInt(2, cno);
+			ResultSet rs1 = stmt.executeQuery();
 			if(rs1.next()) {
+				System.out.println("cno found");
 				return cno;
 			}
 			else {
