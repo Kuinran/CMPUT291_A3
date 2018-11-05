@@ -1,8 +1,12 @@
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Calendar;
 
 public class JDBC_Connection { // class for connecting and reusable functions involving connections
 	public static Connection connect() throws SQLException {
@@ -29,11 +33,19 @@ public class JDBC_Connection { // class for connecting and reusable functions in
 	
 	public static void sendMsg(String sender, String reciever, String msg, int rno, Connection conn) { // saves a message
 		System.out.println("Sending Message");
-		String sql = String.format("insert into inbox (email, msgTimestamp, sender, content, rno, seen) "
-				+ "values ('%s', datetime('now'), '%s', '%s', '%d', 'n');", reciever, sender, msg, rno);
-		try {
-			Statement stmt = conn.createStatement();
-			if (!stmt.execute(sql)) {
+
+		String sql = "insert into inbox(email, msgTimestamp, sender, content, rno, seen) values(?,?,?,?,?,?)";
+		java.util.Date date = new java.util.Date();
+		java.sql.Timestamp timestamp = new java.sql.Timestamp(date.getTime());
+		
+		try (PreparedStatement pstmt = conn.prepareStatement(sql);){
+			pstmt.setString(1, reciever);
+			pstmt.setTimestamp(2, timestamp);
+			pstmt.setString(3, sender);
+			pstmt.setString(4, msg);
+			pstmt.setInt(5, rno);
+			pstmt.setString(6, "n");
+			if (pstmt.executeUpdate() > 0) {
 				System.out.println("Message sent!");
 			} else {
 				System.out.println("Message failed to send");
