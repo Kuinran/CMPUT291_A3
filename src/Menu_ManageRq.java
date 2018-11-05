@@ -19,14 +19,14 @@ public class Menu_ManageRq {
 		this.Uemail = usr;
 		this.scanner = scanner.reset();
 		this.conn = conn;
-		this.mode();
 		this.state = State.MAIN;
-		mode();//run
+		this.mode();//run
 	}
 
 	void mode () {
 		//scanner.nextLine();
 		while(this.state != State.QUIT) {//set exit condition 
+			// System.out.println("State: " + state);
 			if (this.state == State.MAIN ) {//ask user for input
 				Prompt();
 			} else if (this.state == State.SEARCH) {//if search
@@ -49,6 +49,7 @@ public class Menu_ManageRq {
 				
 			} else if (this.state == State.MSG) {//if user wants to send message
 				sendMsg();
+				
 			} else if (this.state == State.NUKE) {//delete row from requests
 				try {
 					DeleteRow();
@@ -105,6 +106,7 @@ public class Menu_ManageRq {
 	}
 	
 	private void msgPrompt() {//ask user to send message
+		//TODO fix invalid email error
 		System.out.println("Would you like to send a message? enter yes or no.");
 		
 		switch(scanner.next().toLowerCase()) {
