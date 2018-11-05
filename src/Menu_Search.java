@@ -253,7 +253,7 @@ public class Menu_Search {
 		System.out.println("Enter how many seats you would like to book or type <Cancel> to return");
 		seats = scanner.nextInt();
 		// format msg
-		String msg = String.format("Hi! I would like to book %d seats on %d.", seats, rno);
+		String msg = String.format("Hi! I would like to book [%d] seat[s] on ride [%d].", seats, rno);
 		// need to query to get reciever of msg then insert new message
 		PreparedStatement findReciever = conn.prepareStatement("select distinct driver from rides "
 				+ "where rno = ?");
