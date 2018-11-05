@@ -175,15 +175,15 @@ public class Menu_ManageRq {
 		if (s >= 5) {
 			printList(List, List.length);
 		}else {
-			String all[][] = new String[s%5][];
-			for (int j = 0; j < s%5; j++) {
+			String all[][] = new String[s/5][];
+			for (int j = 0; j < s/5; j++) {
 				all[j] = UpdateList(List, j);
 			}
 			printList(all[0], 5);
 			int k = 1;
 			System.out.println("Please input 'n' for next page or anything else to continue.");
 			String input = scanner.next().toLowerCase();
-			while (input.equals("n") && k < s%5) {
+			while (input.equals("n") && k < s/5) {
 				printList(all[k], all[k].length);
 				System.out.println("Please type n for next page or anything else to continue.");
 				input = scanner.next().toLowerCase();
@@ -195,7 +195,8 @@ public class Menu_ManageRq {
 	
 	private String[] UpdateList(String list[], int mod) {
 		String newString[] = new String[5];
-		for (int i = mod; i < mod + 5; i ++) {
+		mod = mod*5;
+		for (int i = mod; i < mod + 5; i++) {
 			newString[i] = list[i];
 		}
 		return newString;
