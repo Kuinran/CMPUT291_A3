@@ -38,15 +38,15 @@ insert into rides (rno, price, rdate, seats, lugDesc, src, dst, driver)
     'fakenews@news.com');
 
 insert into rides (rno, price, rdate, seats, lugDesc, src, dst, driver)
-  values ('3', '50', '2019-03-05', '6', 'stuff', 'ab1', 'ab2',
+  values ('4', '50', '2019-03-05', '6', 'stuff', 'ab1', 'ab2',
     'fakenews@news.com');
 
 insert into rides (rno, price, rdate, seats, lugDesc, src, dst, driver)
-  values ('3', '50', '2019-03-12', '6', 'stuff', 'ab1', 'ab2',
+  values ('5', '50', '2019-03-12', '6', 'stuff', 'ab1', 'ab2',
     'fakenews@news.com');
 
 insert into rides (rno, price, rdate, seats, lugDesc, src, dst, driver)
-  values ('3', '50', '2019-03-06', '6', 'stuff', 'ab1', 'ab2',
+  values ('6', '50', '2019-03-06', '6', 'stuff', 'ab1', 'ab2',
     'fakenews@news.com');
 
 insert into bookings (bno, email, rno, cost, seats, pickup, dropoff)

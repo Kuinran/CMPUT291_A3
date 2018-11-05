@@ -40,6 +40,7 @@ public class JDBC_Connection { // class for connecting and reusable functions in
 			}
 		} catch (Exception e) {
 			System.out.println("Connection to server failed");
+			e.printStackTrace();
 		}
 	}
 	
@@ -62,6 +63,7 @@ public class JDBC_Connection { // class for connecting and reusable functions in
 			//stmt.execute(sql);
 		} catch (Exception e) {
 			System.out.println("Connection to server failed");
+			e.printStackTrace();
 		}
 	}
 }
