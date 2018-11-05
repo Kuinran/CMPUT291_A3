@@ -1,6 +1,7 @@
 import java.util.Scanner;
 import java.sql.Connection;
 import java.sql.SQLException;
+
 public class Main {
 	public static void main(String[] args) {
 		// start program
@@ -14,7 +15,6 @@ public class Main {
 				conn = JDBC_Connection.connect(args[0]);
 			} catch (SQLException e) {System.out.println("Failed to connect to database");}
 		}
-
 		Scanner scanner = new Scanner(System.in);
 		new Menu_Login(scanner, conn);
 		scanner.close();
