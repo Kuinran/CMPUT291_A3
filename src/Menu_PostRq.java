@@ -13,29 +13,26 @@ import java.sql.ResultSet;
 
 public class Menu_PostRq{
 	private String usr;
-	private enum State {MAIN, QUIT};
-	private State state;
+
 		Menu_PostRq(String usr, Scanner scanner, Connection conn) {
 			this.usr = usr;
-			this.state = State.MAIN;
 			post_rq(scanner, conn);
 		}
 		
 		private void post_rq (Scanner scanner, Connection conn){
-			while(this.state != State.QUIT) { 
-				System.out.println("date (YYYY-MM-DD)\n");
-				String date = scanner.next();
-				System.out.println("pickup location code\n");
-				String pickup = scanner.next();
-				System.out.println("dropoff location code\n");
-				String dropoff = scanner.next();
-				System.out.println("price\n");
-				String p = scanner.next();
-				int price = Integer.parseInt(p);
 			
-				Insert(date, pickup, dropoff, price, conn);
-				state = State.QUIT;
-			}
+			System.out.println("date (YYYY-MM-DD)\n");
+			String date = scanner.next();
+			System.out.println("pickup location code\n");
+			String pickup = scanner.next();
+			System.out.println("dropoff location code\n");
+			String dropoff = scanner.next();
+			System.out.println("price\n");
+			String p = scanner.next();
+			int price = Integer.parseInt(p);
+			
+			Insert(date, pickup, dropoff, price, conn);
+				
 		}
 		
 		private void Insert (String date, String pickup, String dropoff, int price, Connection conn)	{
