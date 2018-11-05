@@ -22,7 +22,7 @@ default: classes
 classes: $(CLASSES:.java=.class)
 
 clean:
-	$(RM) *.class submit.tar
+	$(RM) *.class submit.tar prjcode.tar
 
 tar: 
-	tar -cvf submit.tar sqlite-jdbc-3.23.1.jar Makefile Report.pdf README.txt Main_States.java JDBC_Connection.java Menu_Book.java Menu_Main.java Menu_ManageRq.java Menu_PostRq.java  Menu_RideOffer.java Menu_Search.java Menu_Login.java Main.java
+	tar -zcvf prjcode.tar.gz sqlite-jdbc-3.23.1.jar Makefile Report.pdf README.txt Main_States.java JDBC_Connection.java Menu_Book.java Menu_Main.java Menu_ManageRq.java Menu_PostRq.java  Menu_RideOffer.java Menu_Search.java Menu_Login.java Main.java
