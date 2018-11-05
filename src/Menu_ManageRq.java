@@ -2,13 +2,8 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.Scanner;
-
-import Menu_Search.State;
-
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -16,7 +11,7 @@ import java.util.List;
 
 public class Menu_ManageRq {
 	private String usr;
-	private enum State {MAIN, SEARCH, PRINT, SUB, MSG, QUIT};
+	private enum State {MAIN, QUIT};
 	private State state;
 	Menu_ManageRq(String usr, Scanner scanner, Connection conn) {
 		this.usr = usr;
@@ -42,7 +37,7 @@ public class Menu_ManageRq {
 				new Menu_Main(usr, scanner, conn);
 			} else {
 				System.out.println("Invalid input");
-				new Menu_ManageRq(usr, scanner, conn);
+				state = State.QUIT;
 			}
 		}
 	}
