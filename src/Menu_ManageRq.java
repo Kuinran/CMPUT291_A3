@@ -50,6 +50,7 @@ public class Menu_ManageRq {
 		String list[] = ListSearch(i, location, scanner, conn);
 		//message user
 		MessageUsr(scanner, conn, list);
+		mode(scanner, conn);
 	}
 	
 	private void MessageUsr(Scanner scanner, Connection conn, String Emails[]) {
@@ -134,7 +135,7 @@ public class Menu_ManageRq {
 		List<String> count = new ArrayList<>();
 		List<String> email = new ArrayList<>();
 		String lcodesql = "select rid, email, rdate, pickup, dropoff, amount from requests where pickup = ?";
-		String citysql = "select rid, email, rdate, pickup, dropoff, amount from requests, location where location.lcode = pickup and city = ?";
+		String citysql = "select rid, email, rdate, pickup, dropoff, amount from requests, location where city = ?";
 		
 		if (i == 1) {
 			PreparedStatement pstmt = conn.prepareStatement(lcodesql);
@@ -265,7 +266,7 @@ public class Menu_ManageRq {
 		}
 		System.out.println("Would you like to delete another request? enter yes or no.");
 		String del = scanner.next().toLowerCase();
-		while (!del.equals("yes") || !del.equals("no")) {
+		while (!del.equals("yes") && !del.equals("no")) {
 			System.out.println("please enter yes or no.");
 			del = scanner.next().toLowerCase();
 		}
@@ -274,7 +275,6 @@ public class Menu_ManageRq {
 		} else if (del.equals("no")) {
 			mode(scanner,conn);
 		}
-		
 	}
 	
 }
