@@ -11,7 +11,7 @@ public class Menu_Login {
 	private Scanner scanner;
 	
 	Menu_Login(Scanner scanner, Connection conn) {
-		System.out.println("'Login' or 'Register' to continue");
+		System.out.println("<Login> or <Register> to continue or <Quit> to exit");
 		String input = scanner.next().toLowerCase();
 		this.scanner = scanner;
 		this.conn = conn;
@@ -19,6 +19,9 @@ public class Menu_Login {
 			register();
 		} else if  (input.equals("login")) {
 			login();
+		} else if (input.equals("quit")) {
+			Main.mainState = Main_States.QUIT;
+			return;
 		} else {
 			System.out.println("Invalid input, terminating program");
 		}	
