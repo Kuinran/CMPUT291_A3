@@ -97,19 +97,22 @@ public class Menu_Search {
 	void searchDb() throws SQLException {
 		System.out.println("Searching...");
 		// query returning lcode where location matches keywords
-		String subQueryString = "select lcode from locations where lcode = ? or city like ? or "
-				+ "prov like ? or address like ?";
-		if (input.length > 1) {
-			subQueryString += " or lcode = ? or city like ? or prov like ? or address like ?";
-		} 
-		if (input.length > 2) {
-			subQueryString += " or lcode = ? or city like ? or prov like ? or address like ?";
-		}
+		String subQueryString = "select lcode from locations where (lcode = ? or city like ? or "
+				+ "prov like ? or address like ?)";
 		// query returning rno where lcode matches location
-		String subQueryStringEnroute = "select rno from enroute where lcode = (" + subQueryString + ")";
+		String subQueryStringEnroute = "select rno from enroute where lcode in (" + subQueryString + ")";
 		String searchString = "select distinct * from rides r left join cars c on r.cno = c.cno"
-				+ " where src in (" + subQueryString + ") or dst in (" + subQueryString + ") or r.rno in ("
-				+ subQueryStringEnroute + ")";
+				+ " where (src in (" + subQueryString + ") or dst in (" + subQueryString + ") or r.rno in ("
+				+ subQueryStringEnroute + "))";
+		if (input.length > 1) {
+			searchString += " and (src in ("+ subQueryString + ") or dst in (" + subQueryString
+					+ ") or r.rno in ("+ subQueryStringEnroute + "))";
+		}
+		if (input.length > 2) {
+			searchString += " and (src in ("+ subQueryString + ") or dst in (" + subQueryString
+					+ ") or r.rno in ("+ subQueryStringEnroute + "))";
+		}
+		// System.out.println(searchString);
 		PreparedStatement search = conn.prepareStatement(searchString);
 		for (int i = 0; i < input.length; i++) {
 			search.setString(i * 12 + 1, input[i]);
