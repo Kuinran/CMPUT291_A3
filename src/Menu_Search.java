@@ -30,7 +30,7 @@ public class Menu_Search {
 	void run() {
 		scanner.nextLine();
 		while (this.state != State.QUIT) { // set condition to if quit state quit loop
-			System.out.println("State: " + state);
+			// System.out.println("State: " + state);
 			if (this.state == State.MAIN) {
 				keywordPrompt();
 			} else if (this.state == State.SEARCH) {
