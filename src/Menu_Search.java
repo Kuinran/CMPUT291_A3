@@ -97,7 +97,6 @@ public class Menu_Search {
 	void searchDb() throws SQLException {
 		System.out.println("Searching...");
 		// query returning lcode where location matches keywords
-		// TODO: fix
 		String subQueryString = "select lcode from locations where lcode = ? or city like ? or "
 				+ "prov like ? or address like ?";
 		if (input.length > 1) {

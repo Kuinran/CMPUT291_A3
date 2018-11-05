@@ -1,6 +1,5 @@
 import java.util.Scanner;
 import java.sql.Connection;
-import java.sql.SQLException;
 
 public class Menu_Main {
 	private String usr;
