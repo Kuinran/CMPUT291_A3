@@ -117,11 +117,13 @@ public class Menu_ManageRq {
 			System.out.println("Please enter the email of the user you wish to message");
 			String email = scanner.next().toLowerCase();
 			for (int i = 0; i < ListEmail.length; i++) {//check if email is valid
-				if (email == ListEmail[i]) {
+				if (email.equals(ListEmail[i])) {
 					this.EmailIn = email;
-					state = State.MSG;//set state machine
-					break;
 				}
+			}
+			if(email.equals(EmailIn)) {
+				state = State.MSG;
+				break;
 			}
 			System.out.println("invald email");//invalid email, returns to search menu
 			state = State.SEARCH;
@@ -161,6 +163,7 @@ public class Menu_ManageRq {
 	}
 	
 	private String[] ListSearch(int i, String location) throws SQLException {
+		//TODO fix time bug
 		List<String> count = new ArrayList<>();//used to count number of lines
 		List<String> email = new ArrayList<>();//array of returned emails
 		String lcodesql = "select rid, email, rdate, pickup, dropoff, amount from requests where pickup = ?";//init sql query
@@ -177,8 +180,8 @@ public class Menu_ManageRq {
 				String pickup = rs.getString("pickup");
 				String dropoff = rs.getString("dropoff");
 				String amt = Integer.toString(rs.getInt("amount"));
-				count.add(rid + "\t" + Email + "\t" + date.toString() + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");//add to arraylist
-				email.add(rs.getString("email").toLowerCase());//add to email list
+				count.add(rid + "\t" + Email + "\t" + date + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");//add to arraylist
+				email.add(Email.toLowerCase());//add to email list
 			}
 			
 		}else if (i == 2) {
@@ -188,11 +191,12 @@ public class Menu_ManageRq {
 				while(rs.next()) {
 					String rid = Integer.toString(rs.getInt("rid"));
 					Date date = rs.getDate("rdate");
+					String Email = rs.getString("email");
 					String pickup = rs.getString("pickup");
 					String dropoff = rs.getString("dropoff");
 					String amt = Integer.toString(rs.getInt("amount"));
-					count.add(rid + "\t" + rs.getString("email") + "\t" + date.toString() + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
-					email.add(rs.getString("email").toLowerCase());
+					count.add(rid + "\t" + Email + "\t" + date.toString() + "\t" + pickup + "\t" + dropoff + "\t" + amt + "\n");
+					email.add(Email.toLowerCase());
 				}
 			}
 		//edit strings to print as specified in spec
@@ -243,20 +247,22 @@ public class Menu_ManageRq {
 		int ridList[] = listAll();//list all requests
 		this.size = ridList.length;//size of all requests
 		System.out.println("Select one ID of request you wish to delete, or exit to return");
-		String id = scanner.next().toLowerCase();
+		String input = scanner.next().toLowerCase();
 		
-		switch(id) {
+		switch(input) {
 		case "exit"://exit case
 			state = State.MAIN;
 			break;
 		default:
-			int ID = Integer.parseInt(id);
+			int ID = Integer.parseInt(input);
 			for (int i = 0; i < ridList.length; i++) {//find rid to delete
 				if (ID == ridList[i]) {
 					this.id = ID;
-					state = State.NUKE;
-					break;
 				}
+			}
+			if (id == ID) {
+				state = State.NUKE;
+				break;
 			}
 			System.out.println("Invalid id, please try again.");//if invalid rid, return to delete menu
 			state = State.DELETE;
@@ -269,7 +275,7 @@ public class Menu_ManageRq {
 		PreparedStatement pstmt = conn.prepareStatement(sql);//prepared statement, prevent injection
 			pstmt.setString(1, Uemail);//set statement conditions
 			ResultSet rs = pstmt.executeQuery();//get results
-			System.out.println("ID" + "\t" + "date" + "\t" + "pickup"+ "\t" +"dropoff"+ "\t" + "amount");
+			System.out.println("ID" + "\t" + "date" + "\t\t" + "pickup"+ "\t" +"dropoff"+ "\t" + "amount");
 			while(rs.next()) {//while there are results
 				count.add(rs.getInt("rid"));//make a list of rid
 				System.out.println(rs.getInt("rid") + "\t" +
@@ -288,11 +294,11 @@ public class Menu_ManageRq {
 	
 	private void DeleteRow() throws SQLException{//delete a row
 		
-		String sql = "delete from requests where rid = ? and email = ?";//see prev comments 
+		String sql = "delete from requests where rid = ? ";//see prev comments //and email = ?
 		
 		PreparedStatement pstmt = conn.prepareStatement(sql);//see prev comment for prepared statements
 			pstmt.setInt(1, id);//given rid
-			pstmt.setString(2, Uemail);//user email
+			//pstmt.setString(2, Uemail);//user email
 			pstmt.executeUpdate();
 			
 		if (size == 1) {
